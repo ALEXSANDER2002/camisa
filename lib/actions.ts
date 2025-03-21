@@ -285,3 +285,22 @@ export async function checkTableExists(): Promise<boolean> {
   }
 }
 
+export async function updatePaymentStatus(id: string, paid: boolean) {
+  try {
+    const { error } = await supabase
+      .from("shirts")
+      .update({ paid })
+      .eq("id", id)
+
+    if (error) {
+      console.error("Erro ao atualizar status de pagamento:", error)
+      throw error
+    }
+
+    return { success: true }
+  } catch (error) {
+    console.error("Erro ao atualizar status de pagamento:", error)
+    throw error
+  }
+}
+

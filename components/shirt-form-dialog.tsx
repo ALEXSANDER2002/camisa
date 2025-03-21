@@ -17,7 +17,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import type { Shirt } from "@/lib/types"
 import { addShirt, updateShirt } from "@/lib/actions"
-import { ShirtIcon, User, Palette, Ruler, Package, DollarSign, FileText, CreditCard } from "lucide-react"
+import { ShirtIcon, User, Palette, Ruler, Package, DollarSign, FileText, CreditCard, XCircle, CheckCircle } from "lucide-react"
 import { useMediaQuery } from "@/hooks/use-media-query"
 
 interface ShirtFormDialogProps {
@@ -259,21 +259,30 @@ export default function ShirtFormDialog({ open, onOpenChange, onAdd, onUpdate, e
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <div className="flex h-10 items-center space-x-2 rounded-md border px-3">
-              <CreditCard className="h-4 w-4 text-muted-foreground" />
-              <Label htmlFor="paid" className="flex items-center cursor-pointer">
-                Status de Pagamento
-              </Label>
-            </div>
-            <div className="flex items-center space-x-2 ml-auto">
-              <Switch id="paid" checked={formData.paid} onCheckedChange={(checked) => handleChange("paid", checked)} />
-              <Label
-                htmlFor="paid"
-                className={formData.paid ? "text-green-600 font-medium" : "text-red-600 font-medium"}
+          <div className="grid gap-2">
+            <Label htmlFor="paid" className="flex items-center">
+              <CreditCard className="h-4 w-4 mr-1 text-muted-foreground" />
+              Status de Pagamento (opcional)
+            </Label>
+            <div className="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg border">
+              <Button
+                type="button"
+                variant={formData.paid ? "outline" : "default"}
+                className={`flex-1 ${!formData.paid ? 'bg-red-600 hover:bg-red-700 text-white' : 'border-red-600 text-red-600 hover:bg-red-50'}`}
+                onClick={() => handleChange("paid", false)}
               >
-                {formData.paid ? "Pago" : "Não Pago"}
-              </Label>
+                <XCircle className="h-4 w-4 mr-2" />
+                Não Pago
+              </Button>
+              <Button
+                type="button"
+                variant={formData.paid ? "default" : "outline"}
+                className={`flex-1 ${formData.paid ? 'bg-green-600 hover:bg-green-700 text-white' : 'border-green-600 text-green-600 hover:bg-green-50'}`}
+                onClick={() => handleChange("paid", true)}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Pago
+              </Button>
             </div>
           </div>
 

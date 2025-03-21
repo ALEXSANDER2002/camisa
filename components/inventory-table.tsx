@@ -26,7 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { useState } from "react"
-import { deleteShirt } from "@/lib/actions"
+import { deleteShirt, updatePaymentStatus } from "@/lib/actions"
 import { Badge } from "@/components/ui/badge"
 import { useMediaQuery } from "@/hooks/use-media-query"
 import { Card, CardContent } from "@/components/ui/card"
@@ -52,6 +52,7 @@ export default function InventoryTable({
   const [shirtToDelete, setShirtToDelete] = useState<Shirt | null>(null)
   const [detailsShirt, setDetailsShirt] = useState<Shirt | Shirt[] | null>(null)
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false)
+  const [loading, setLoading] = useState<string | null>(null)
 
   // Verificar se é dispositivo móvel
   const isMobile = useMediaQuery("(max-width: 768px)")
@@ -163,6 +164,23 @@ export default function InventoryTable({
     return new Date(b[0].created_at || "").getTime() - new Date(a[0].created_at || "").getTime()
   })
 
+  const handlePaymentToggle = async (id: string, currentPaid: boolean) => {
+    try {
+      setLoading(id)
+      await updatePaymentStatus(id, !currentPaid)
+      // Atualizar a lista de camisetas após a mudança
+      const updatedShirt = shirts.find(s => s.id === id)
+      if (updatedShirt) {
+        onEdit({ ...updatedShirt, paid: !currentPaid })
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar status de pagamento:", error)
+      alert("Erro ao atualizar status de pagamento. Tente novamente.")
+    } finally {
+      setLoading(null)
+    }
+  }
+
   // Renderização para dispositivos móveis
   if (isMobile) {
     return (
@@ -212,27 +230,31 @@ export default function InventoryTable({
 
                   <div className="flex items-center justify-between p-3 bg-gray-50">
                     <div>
-                      {group[0].paid !== undefined ? (
-                        group[0].paid ? (
-                          <Badge
-                            variant="outline"
-                            className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1"
-                          >
-                            <CheckCircle className="h-3 w-3" /> Pago
-                          </Badge>
+                      <Button
+                        variant={group[0].paid ? "default" : "outline"}
+                        size="sm"
+                        className={`w-32 ${
+                          group[0].paid 
+                            ? 'bg-green-600 hover:bg-green-700 text-white font-medium' 
+                            : 'bg-white hover:bg-red-50 text-red-600 border-red-600 font-medium'
+                        }`}
+                        onClick={() => handlePaymentToggle(group[0].id, group[0].paid)}
+                        disabled={loading === group[0].id}
+                      >
+                        {loading === group[0].id ? (
+                          <div className="animate-spin rounded-full h-4 w-4 border-2 border-current" />
+                        ) : group[0].paid ? (
+                          <div className="flex items-center justify-center gap-2">
+                            <CheckCircle className="h-4 w-4" />
+                            Pago
+                          </div>
                         ) : (
-                          <Badge
-                            variant="outline"
-                            className="bg-red-100 text-red-800 border-red-200 flex items-center gap-1"
-                          >
-                            <XCircle className="h-3 w-3" /> Não Pago
-                          </Badge>
-                        )
-                      ) : (
-                        <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200">
-                          N/A
-                        </Badge>
-                      )}
+                          <div className="flex items-center justify-center gap-2">
+                            <XCircle className="h-4 w-4" />
+                            Não Pago
+                          </div>
+                        )}
+                      </Button>
                     </div>
                     <div className="flex gap-1">
                       <Button
@@ -609,7 +631,12 @@ export default function InventoryTable({
                 Preço{getSortIndicator("price")}
               </TableHead>
               <TableHead className="cursor-pointer text-center font-semibold" onClick={() => onSort("paid")}>
-                Pagamento{getSortIndicator("paid")}
+                Status do Pagamento
+                {sortField === "paid" && (
+                  <span className="ml-2">
+                    {sortDirection === "asc" ? "↑" : "↓"}
+                  </span>
+                )}
               </TableHead>
               <TableHead className="text-center font-semibold">Comprovante</TableHead>
               <TableHead className="w-[70px]"></TableHead>
@@ -662,33 +689,31 @@ export default function InventoryTable({
                   </TableCell>
                   <TableCell className="text-right font-medium">R$ {shirt.price.toFixed(2)}</TableCell>
                   <TableCell className="text-center">
-                    {shirt.paid !== undefined ? (
-                      shirt.paid ? (
-                        <div className="flex items-center justify-center">
-                          <Badge
-                            variant="outline"
-                            className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1"
-                          >
-                            <CheckCircle className="h-3 w-3" /> Pago
-                          </Badge>
+                    <Button
+                      variant={shirt.paid ? "default" : "outline"}
+                      size="sm"
+                      className={`w-32 ${
+                        shirt.paid 
+                          ? 'bg-green-600 hover:bg-green-700 text-white font-medium' 
+                          : 'bg-white hover:bg-red-50 text-red-600 border-red-600 font-medium'
+                      }`}
+                      onClick={() => handlePaymentToggle(shirt.id, shirt.paid)}
+                      disabled={loading === shirt.id}
+                    >
+                      {loading === shirt.id ? (
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-current" />
+                      ) : shirt.paid ? (
+                        <div className="flex items-center justify-center gap-2">
+                          <CheckCircle className="h-4 w-4" />
+                          Pago
                         </div>
                       ) : (
-                        <div className="flex items-center justify-center">
-                          <Badge
-                            variant="outline"
-                            className="bg-red-100 text-red-800 border-red-200 flex items-center gap-1"
-                          >
-                            <XCircle className="h-3 w-3" /> Não Pago
-                          </Badge>
+                        <div className="flex items-center justify-center gap-2">
+                          <XCircle className="h-4 w-4" />
+                          Não Pago
                         </div>
-                      )
-                    ) : (
-                      <div className="flex items-center justify-center">
-                        <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200">
-                          N/A
-                        </Badge>
-                      </div>
-                    )}
+                      )}
+                    </Button>
                   </TableCell>
                   <TableCell className="text-center">
                     {shirt.payment_proof_url && renderPaymentProofLink(shirt.payment_proof_url)}
