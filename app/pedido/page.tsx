@@ -37,7 +37,7 @@ import { supabase } from "@/lib/supabase"
 import { v4 as uuidv4 } from "uuid"
 import { ShirtCard } from "@/components/shirt-card"
 
-const sizeOptions = ["P", "M", "G", "GG", "XGG", "P BL", "M BL", "G BL"]
+const sizeOptions = ["P", "M", "G", "GG", "XGG", "P BL", "M BL", "G BL", "GG BL"]
 const colorOptions = ["Azul", "Preto"]
 
 // Modelos de camisetas disponíveis
