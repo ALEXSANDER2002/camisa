@@ -252,11 +252,11 @@ export default function PedidoPage() {
         name: formData.name,
         size: formData.size,
         color: formData.color,
-        material: "100% Algodão", // Valor padrão para o material
+        material: "100% Algodão",
         quantity: formData.quantity,
         price: getSelectedModelPrice(),
         description: formData.description || null,
-        paid: payWithPix, // Se pagou com PIX, marcar como pago
+        paid: false,
         created_at: new Date().toISOString(),
         model_number: modelNumber,
         order_group: orderGroup,
@@ -265,36 +265,67 @@ export default function PedidoPage() {
 
       // Fazer upload do comprovante se existir
       let paymentProofUrl = null
-      if (payWithPix && paymentProofFile) {
-        // Gerar um nome único para o arquivo
-        const fileExt = paymentProofFile.name.split(".").pop()
-        const fileName = `${uuidv4()}.${fileExt}`
-        const filePath = `payment-proofs/${fileName}`
+      if (paymentProofFile) {
+        try {
+          const fileExt = paymentProofFile.name.split(".").pop()
+          const fileName = `${uuidv4()}.${fileExt}`
+          const filePath = `${fileName}`
 
-        // Fazer upload do arquivo para o Supabase Storage
-        const { data, error } = await supabase.storage.from("shirts").upload(filePath, paymentProofFile)
+          // Verificar se o arquivo é uma imagem ou PDF
+          if (!paymentProofFile.type.match(/(image\/.*|application\/pdf)/)) {
+            throw new Error("Por favor, anexe apenas imagens ou arquivos PDF")
+          }
 
-        if (error) {
-          console.error("Erro ao fazer upload do comprovante:", error)
-          throw new Error("Falha ao fazer upload do comprovante")
+          // Verificar tamanho do arquivo (máximo 5MB)
+          if (paymentProofFile.size > 5 * 1024 * 1024) {
+            throw new Error("O arquivo deve ter no máximo 5MB")
+          }
+
+          const { data, error: uploadError } = await supabase.storage
+            .from("shirts")
+            .upload(filePath, paymentProofFile, {
+              cacheControl: "3600",
+              upsert: false
+            })
+
+          if (uploadError) {
+            console.error("Erro detalhado do upload:", uploadError)
+            if (uploadError.message.includes("duplicate")) {
+              throw new Error("Este arquivo já foi enviado anteriormente. Por favor, tente outro arquivo.")
+            } else if (uploadError.message.includes("permission")) {
+              throw new Error("Erro de permissão ao fazer upload. Por favor, tente novamente.")
+            } else {
+              throw new Error("Não foi possível fazer o upload do comprovante: " + uploadError.message)
+            }
+          }
+
+          const { data: urlData } = supabase.storage
+            .from("shirts")
+            .getPublicUrl(filePath)
+
+          if (!urlData.publicUrl) {
+            throw new Error("Não foi possível obter a URL do comprovante")
+          }
+
+          paymentProofUrl = urlData.publicUrl
+          order.paid = true
+        } catch (error) {
+          console.error("Erro ao processar comprovante:", error)
+          throw new Error(error instanceof Error ? error.message : "Erro ao processar o comprovante")
         }
-
-        // Obter a URL pública do comprovante
-        const { data: urlData } = supabase.storage.from("shirts").getPublicUrl(filePath)
-        paymentProofUrl = urlData.publicUrl
       }
 
       // Inserir pedido com comprovante
-      const { error } = await supabase.from("shirts").insert([
+      const { error: insertError } = await supabase.from("shirts").insert([
         {
           ...order,
           payment_proof_url: paymentProofUrl,
         },
       ])
 
-      if (error) {
-        console.error("Erro ao inserir pedido:", error)
-        throw new Error("Falha ao enviar pedido. Por favor, tente novamente.")
+      if (insertError) {
+        console.error("Erro ao inserir pedido:", insertError)
+        throw new Error("Falha ao salvar o pedido. Por favor, tente novamente.")
       }
 
       // Limpar formulário e mostrar diálogo de sucesso
@@ -306,12 +337,10 @@ export default function PedidoPage() {
         description: "",
       })
       setSelectedModel(null)
-      setPayWithPix(false)
       setPaymentProofFile(null)
       setPaymentProofPreview(null)
       setSuccess(true)
-      setShowSuccessDialog(true)
-
+      setShowSuccessDialog(true) // Mostrar diálogo apenas após sucesso do envio
     } catch (error) {
       console.error("Erro ao enviar pedido:", error)
       setErrors({
@@ -320,6 +349,12 @@ export default function PedidoPage() {
     } finally {
       setIsSubmitting(false)
     }
+  }
+
+  // Função para copiar PIX
+  const handleCopyPix = () => {
+    navigator.clipboard.writeText("94984507070")
+    alert("Número do PIX copiado!")
   }
 
   return (
@@ -333,9 +368,9 @@ export default function PedidoPage() {
             </DialogTitle>
             <DialogDescription className="pt-4 pb-2">
               Seu pedido foi recebido.
-              {payWithPix && (
+              {paymentProofFile && (
                 <p className="mt-2 text-green-600 font-medium">
-                  Seu pagamento via PIX foi registrado junto ao pedido.
+                  Seu comprovante de pagamento foi anexado ao pedido.
                 </p>
               )}
             </DialogDescription>
@@ -484,7 +519,7 @@ export default function PedidoPage() {
                 </div>
               </div>
 
-              {/* Área de pagamento via PIX */}
+              {/* Área de pagamento */}
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
                   <div className="flex items-center">
@@ -505,76 +540,77 @@ export default function PedidoPage() {
                     R$ {(getSelectedModelPrice() * formData.quantity).toFixed(2)}
                   </span>
                 </div>
-
-                <div className="bg-white p-4 rounded-lg border-2 border-blue-200 mt-4">
-                  <div className="flex flex-col items-center">
-                    <p className="text-base font-medium text-blue-600 mb-3">
-                      Pagamento via PIX (Opcional)
-                    </p>
-                    <p className="text-sm text-gray-600 mb-4 text-center">
-                      Você pode pagar agora via PIX ou combinar o pagamento depois da confirmação do pedido
-                    </p>
-                    <div className="bg-blue-50 p-4 rounded-lg w-full text-center mb-4 border border-blue-100">
-                      <p className="text-sm text-gray-600 mb-2">Chave PIX:</p>
-                      <code className="text-xl font-bold text-blue-700 block mb-1">94 98450-7070</code>
-                      <p className="text-sm font-medium text-gray-600">(Nubank) Leticia Ellen</p>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 w-full sm:w-auto"
-                      onClick={() => {
-                        navigator.clipboard.writeText("94984507070")
-                        alert("Número do PIX copiado!")
-                      }}
-                    >
-                      Copiar número do PIX
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="space-y-2 bg-white p-4 rounded-lg border border-slate-200 mt-4">
-                  <Label htmlFor="payment-proof" className="flex items-center text-base font-medium">
-                    <Upload className="h-4 w-4 mr-2 text-blue-600 flex-shrink-0" />
-                    Anexar Comprovante de Pagamento (Opcional)
-                  </Label>
-
-                  <div className="grid gap-2">
-                    <Input
-                      id="payment-proof"
-                      type="file"
-                      ref={fileInputRef}
-                      onChange={handlePaymentProofChange}
-                      accept="image/*,.pdf"
-                      className="border-slate-200 text-sm"
-                    />
-
-                    {paymentProofPreview && (
-                      <div className="relative mt-2 border rounded-md overflow-hidden">
-                        <img
-                          src={paymentProofPreview || "/placeholder.svg"}
-                          alt="Comprovante de pagamento"
-                          className="max-h-40 w-full object-contain"
-                        />
-                        <Button
-                          type="button"
-                          variant="destructive"
-                          size="sm"
-                          className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
-                          onClick={handleRemovePaymentProof}
-                        >
-                          ✕
-                        </Button>
-                      </div>
-                    )}
-                  </div>
-
-                  <p className="text-sm text-blue-600 mt-2">
-                    Se você escolher pagar agora via PIX, anexe o comprovante aqui. Caso contrário, você poderá combinar o pagamento após a confirmação do pedido.
-                  </p>
-                </div>
               </div>
             </form>
+
+            {/* Área do PIX - Fora do formulário */}
+            <div className="mt-6">
+              <div className="bg-white p-4 rounded-lg border-2 border-blue-200">
+                <div className="flex flex-col items-center">
+                  <p className="text-base font-medium text-blue-600 mb-3">
+                    Pagamento via PIX (Opcional)
+                  </p>
+                  <p className="text-sm text-gray-600 mb-4 text-center">
+                    Você pode pagar agora via PIX ou combinar o pagamento depois da confirmação do pedido
+                  </p>
+                  <div className="bg-blue-50 p-4 rounded-lg w-full text-center mb-4 border border-blue-100">
+                    <p className="text-sm text-gray-600 mb-2">Chave PIX:</p>
+                    <code className="text-xl font-bold text-blue-700 block mb-1">94 98450-7070</code>
+                    <p className="text-sm font-medium text-gray-600">(Nubank) Leticia Ellen</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 w-full sm:w-auto"
+                    onClick={handleCopyPix}
+                  >
+                    Copiar número do PIX
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2 bg-white p-4 rounded-lg border border-slate-200 mt-4">
+                <Label htmlFor="payment-proof" className="flex items-center text-base font-medium">
+                  <Upload className="h-4 w-4 mr-2 text-blue-600 flex-shrink-0" />
+                  Anexar Comprovante de Pagamento (Opcional)
+                </Label>
+
+                <div className="grid gap-2">
+                  <Input
+                    id="payment-proof"
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handlePaymentProofChange}
+                    accept="image/*,.pdf"
+                    className="border-slate-200 text-sm"
+                  />
+
+                  {paymentProofPreview && (
+                    <div className="relative mt-2 border rounded-md overflow-hidden">
+                      <img
+                        src={paymentProofPreview || "/placeholder.svg"}
+                        alt="Comprovante de pagamento"
+                        className="max-h-40 w-full object-contain"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="sm"
+                        className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
+                        onClick={handleRemovePaymentProof}
+                      >
+                        ✕
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                <p className="text-sm text-blue-600 mt-2">
+                  Se você escolher pagar agora via PIX, anexe o comprovante aqui. Caso contrário, você poderá combinar o pagamento após a confirmação do pedido.
+                </p>
+              </div>
+            </div>
           </CardContent>
 
           <CardFooter className="bg-slate-50/50 border-t border-slate-200 flex flex-col sm:flex-row gap-3 sm:justify-between p-4">
