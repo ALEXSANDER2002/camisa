@@ -506,89 +506,73 @@ export default function PedidoPage() {
                   </span>
                 </div>
 
-                <div className="flex items-center space-x-2 mb-4">
-                  <Switch id="pay-with-pix" checked={payWithPix} onCheckedChange={setPayWithPix} />
-                  <Label htmlFor="pay-with-pix" className="cursor-pointer flex items-center">
-                    <CreditCard className="h-4 w-4 mr-2 text-blue-600 flex-shrink-0" />
-                    Pagar agora com PIX
-                  </Label>
+                <div className="bg-white p-4 rounded-lg border-2 border-blue-200 mt-4">
+                  <div className="flex flex-col items-center">
+                    <p className="text-base font-medium text-blue-600 mb-3">
+                      Pagamento via PIX (Opcional)
+                    </p>
+                    <p className="text-sm text-gray-600 mb-4 text-center">
+                      Você pode pagar agora via PIX ou combinar o pagamento depois da confirmação do pedido
+                    </p>
+                    <div className="bg-blue-50 p-4 rounded-lg w-full text-center mb-4 border border-blue-100">
+                      <p className="text-sm text-gray-600 mb-2">Chave PIX:</p>
+                      <code className="text-xl font-bold text-blue-700 block mb-1">94 98450-7070</code>
+                      <p className="text-sm font-medium text-gray-600">(Nubank) Leticia Ellen</p>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100 w-full sm:w-auto"
+                      onClick={() => {
+                        navigator.clipboard.writeText("94984507070")
+                        alert("Número do PIX copiado!")
+                      }}
+                    >
+                      Copiar número do PIX
+                    </Button>
+                  </div>
                 </div>
 
-                {payWithPix && (
-                  <div className="mt-4 space-y-4 animate-fade-in">
-                    <div className="bg-white p-4 rounded-lg border border-slate-200">
-                      <div className="flex flex-col items-center">
-                        <p className="text-sm text-center text-muted-foreground mb-2">
-                          Use a chave PIX (telefone) abaixo para fazer o pagamento
-                        </p>
-                        <div className="bg-gray-100 p-2 rounded w-full text-center mb-2 overflow-x-auto">
-                          <code className="text-sm whitespace-nowrap">94 98450-7070</code>
-                          <p className="text-xs text-muted-foreground mt-1">(Nubank) Leticia Ellen</p>
-                        </div>
+                <div className="space-y-2 bg-white p-4 rounded-lg border border-slate-200 mt-4">
+                  <Label htmlFor="payment-proof" className="flex items-center text-base font-medium">
+                    <Upload className="h-4 w-4 mr-2 text-blue-600 flex-shrink-0" />
+                    Anexar Comprovante de Pagamento (Opcional)
+                  </Label>
+
+                  <div className="grid gap-2">
+                    <Input
+                      id="payment-proof"
+                      type="file"
+                      ref={fileInputRef}
+                      onChange={handlePaymentProofChange}
+                      accept="image/*,.pdf"
+                      className="border-slate-200 text-sm"
+                    />
+
+                    {paymentProofPreview && (
+                      <div className="relative mt-2 border rounded-md overflow-hidden">
+                        <img
+                          src={paymentProofPreview || "/placeholder.svg"}
+                          alt="Comprovante de pagamento"
+                          className="max-h-40 w-full object-contain"
+                        />
                         <Button
-                          variant="outline"
+                          type="button"
+                          variant="destructive"
                           size="sm"
-                          className="text-xs border-slate-200 w-full sm:w-auto"
-                          onClick={() => {
-                            navigator.clipboard.writeText("94 98450-7070")
-                            alert("Chave PIX copiada!")
-                          }}
+                          className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
+                          onClick={handleRemovePaymentProof}
                         >
-                          Copiar chave PIX
+                          ✕
                         </Button>
                       </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="payment-proof" className="required flex items-center">
-                        <Upload className="h-4 w-4 mr-1 text-muted-foreground flex-shrink-0" />
-                        Anexar Comprovante de Pagamento
-                      </Label>
-
-                      <div className="grid gap-2">
-                        <Input
-                          id="payment-proof"
-                          type="file"
-                          ref={fileInputRef}
-                          onChange={handlePaymentProofChange}
-                          accept="image/*,.pdf"
-                          className={`border-slate-200 ${errors.paymentProof ? "border-destructive" : ""} text-sm`}
-                        />
-
-                        {errors.paymentProof && <p className="text-sm text-destructive">{errors.paymentProof}</p>}
-
-                        {paymentProofPreview && (
-                          <div className="relative mt-2 border rounded-md overflow-hidden">
-                            <img
-                              src={paymentProofPreview || "/placeholder.svg"}
-                              alt="Comprovante de pagamento"
-                              className="max-h-40 w-full object-contain"
-                            />
-                            <Button
-                              type="button"
-                              variant="destructive"
-                              size="sm"
-                              className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
-                              onClick={handleRemovePaymentProof}
-                            >
-                              ✕
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-
-                      <p className="text-xs text-muted-foreground">
-                        Anexe uma imagem ou PDF do seu comprovante de pagamento. Seu pedido será marcado como pago.
-                      </p>
-                    </div>
+                    )}
                   </div>
-                )}
 
-                {!payWithPix && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    O pagamento será combinado após a confirmação do pedido.
+                  <p className="text-sm text-blue-600 mt-2">
+                    Se você escolher pagar agora via PIX, anexe o comprovante aqui. Caso contrário, você poderá combinar o pagamento após a confirmação do pedido.
                   </p>
-                )}
+                </div>
               </div>
             </form>
           </CardContent>
