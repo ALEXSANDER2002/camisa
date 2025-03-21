@@ -47,24 +47,28 @@ const shirtModels = [
     name: "Camisa Polo Azul PSICOLOGIA",
     image: "/images/polo_azul.jpeg",
     description: "Camisa polo azul com emblema de Psicologia e logo UNAMA.",
+    price: 56.00,
   },
   {
     id: "polo-preto",
     name: "Camisa Polo Preta PSICOLOGIA",
     image: "/images/poloazul.jpeg",
     description: "Camisa polo preta com emblema de Psicologia e logo UNAMA.",
+    price: 56.00,
   },
   {
     id: "camiseta-azul",
     name: "Camiseta Azul PSICOLOGIA UNAMA",
     image: "/images/azul.png",
     description: "Camiseta azul com estampa PSICOLOGIA UNAMA.",
+    price: 50.00,
   },
   {
     id: "camiseta-preta",
     name: "Camiseta Preta PSICOLOGIA UNAMA",
     image: "/images/preta.png",
     description: "Camiseta preta com estampa PSICOLOGIA UNAMA.",
+    price: 50.00,
   },
 ]
 
@@ -205,6 +209,13 @@ export default function PedidoPage() {
     }
   }
 
+  // Função para obter o preço do modelo selecionado
+  const getSelectedModelPrice = () => {
+    if (!selectedModel) return 0
+    const model = shirtModels.find(m => m.id === selectedModel)
+    return model?.price || 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -214,9 +225,6 @@ export default function PedidoPage() {
     setSuccess(false)
 
     try {
-      // Preço fixo para demonstração
-      const fixedPrice = 56.0
-
       // Obter o modelo selecionado
       const model = shirtModels.find((m) => m.id === selectedModel)
 
@@ -246,7 +254,7 @@ export default function PedidoPage() {
         color: formData.color,
         material: "100% Algodão", // Valor padrão para o material
         quantity: formData.quantity,
-        price: fixedPrice,
+        price: getSelectedModelPrice(),
         description: formData.description || null,
         paid: payWithPix, // Se pagou com PIX, marcar como pago
         created_at: new Date().toISOString(),
@@ -483,7 +491,19 @@ export default function PedidoPage() {
                     <DollarSign className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0" />
                     <span className="font-medium">Preço unitário:</span>
                   </div>
-                  <span className="font-bold text-lg">R$ 56,00</span>
+                  <span className="font-bold text-lg">
+                    R$ {getSelectedModelPrice().toFixed(2)}
+                  </span>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+                  <div className="flex items-center">
+                    <Package className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0" />
+                    <span className="font-medium">Total ({formData.quantity} {formData.quantity > 1 ? 'unidades' : 'unidade'}):</span>
+                  </div>
+                  <span className="font-bold text-lg text-green-600">
+                    R$ {(getSelectedModelPrice() * formData.quantity).toFixed(2)}
+                  </span>
                 </div>
 
                 <div className="flex items-center space-x-2 mb-4">
