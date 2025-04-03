@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'Sistema de Camisas Bits Jr',
   description: 'Sistema de gerenciamento de camisas e eventos da Bits Jr',
   generator: 'v0.dev',
+  icons: '/logo-bits.png',
 }
 
 export default function RootLayout({

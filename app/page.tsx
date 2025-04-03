@@ -18,10 +18,9 @@ export default function Home() {
         
         <div className="container mx-auto flex flex-col items-center text-center relative">
           <div className="relative mb-6">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-cyan-500 to-purple-600 rounded-full opacity-70 blur-sm animate-pulse"></div>
-            <div className="relative bg-slate-800 rounded-full p-2 flex items-center justify-center">
-              <ShirtIcon className="h-16 w-16 text-white" />
-            </div>
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 via-cyan-500 to-purple-600 rounded-full opacity-70 blur-sm animate-pulse "></div>
+            <div className="relative  rounded-full p-2 flex items-center justify-center">
+              <img src="/bits-3.png" alt="bits" className="w-20 h-auto"  />            </div>
           </div>
           
           <div className="mb-8">
