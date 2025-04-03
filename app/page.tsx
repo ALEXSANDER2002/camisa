@@ -10,7 +10,12 @@ export default function Home() {
       <div className="bg-gradient-to-r from-blue-600 to-slate-800 py-12 px-4 mb-8 shadow-md">
         <div className="container mx-auto flex flex-col items-center text-center">
           <ShirtIcon className="h-16 w-16 text-white mb-4" />
-          <h1 className="text-4xl font-bold text-white mb-4">Sistema De Camisas</h1>
+          <h1 className="text-5xl font-bold text-white mb-4 tracking-tight relative z-10 drop-shadow-[0_5px_10px_rgba(0,0,0,0.7)]">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-300 to-blue-500 animate-pulse">
+              Sistema de Camisas
+            </span>
+            <span> Bits Jr</span>
+          </h1>
           <p className="text-white/90 max-w-lg mb-8">
             Camisetas personalizadas com estilo e qualidade para você expressar sua personalidade
           </p>
