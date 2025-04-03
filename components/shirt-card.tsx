@@ -1,7 +1,8 @@
 "use client"
 
-import { Check } from "lucide-react"
+import { Check, ChevronLeft, ChevronRight } from "lucide-react"
 import Image from "next/image"
+import { useState } from "react"
 
 interface ShirtCardProps {
   id: string
@@ -13,6 +14,21 @@ interface ShirtCardProps {
 }
 
 export function ShirtCard({ id, name, image, description, isSelected, onSelect }: ShirtCardProps) {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  
+  // Gerando URL para a imagem das costas
+  const backImage = image.replace(/\.[^/.]+$/, "") + "-atras.jpg";
+  
+  const images = [image, backImage];
+  
+  const nextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
+  
+  const prevImage = () => {
+    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
+  };
+
   return (
     <div
       className={`relative border rounded-lg overflow-hidden cursor-pointer transition-all hover:shadow-md ${
@@ -22,20 +38,53 @@ export function ShirtCard({ id, name, image, description, isSelected, onSelect }
     >
       <div className="p-4">
         <div className="flex flex-col items-center">
-          <div className="w-full flex-shrink-0 mb-5 flex justify-center">
-            <div className="border border-gray-200 rounded-lg p-3 bg-white">
-              <Image 
-                src={image} 
-                alt={name} 
-                width={350}
-                height={350}
-                className="object-contain mx-auto"
-                priority
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.src = "/placeholder.svg";
-                }}
-              />
+          <div className="w-full flex-shrink-0 mb-5 flex justify-center relative">
+            <div className="border border-gray-200 rounded-lg p-3 bg-white relative">
+              <div className="relative">
+                <Image 
+                  src={images[currentImageIndex]} 
+                  alt={currentImageIndex === 0 ? `${name} - Frente` : `${name} - Costas`}
+                  width={350}
+                  height={350}
+                  className="object-contain mx-auto"
+                  priority
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = "/placeholder.svg";
+                  }}
+                />
+                
+                {/* Controles de navegação */}
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    prevImage();
+                  }} 
+                  className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-1 shadow-md"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </button>
+                
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    nextImage();
+                  }} 
+                  className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white/80 rounded-full p-1 shadow-md"
+                >
+                  <ChevronRight className="h-5 w-5" />
+                </button>
+                
+                {/* Indicadores de slides */}
+                <div className="absolute bottom-1 left-0 right-0 flex justify-center gap-1">
+                  {images.map((_, idx) => (
+                    <span 
+                      key={idx} 
+                      className={`h-1.5 w-1.5 rounded-full ${idx === currentImageIndex ? 'bg-blue-600' : 'bg-gray-300'}`} 
+                    />
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
           <div className="p-2 text-center w-full">
