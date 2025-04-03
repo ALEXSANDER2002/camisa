@@ -221,7 +221,17 @@ export default function InventoryTable({
                     </div>
                     <div className="flex items-center justify-between sm:flex-col sm:items-end w-full sm:w-auto">
                       <span className="font-medium text-sm sm:text-base">
-                        R$ {group.reduce((sum, shirt) => sum + shirt.price * shirt.quantity, 0).toFixed(2)}
+                        {group[0].ticket_price ? (
+                          <div className="flex flex-col text-right">
+                            <span className="text-xs text-gray-600">Camisa: R$ {group[0].price.toFixed(2)}</span>
+                            <span className="text-xs text-gray-600">Entrada: R$ {group[0].ticket_price.toFixed(2)}</span>
+                            <span className="font-bold">
+                              Total: R$ {((group[0].price * group[0].quantity) + group[0].ticket_price).toFixed(2)}
+                            </span>
+                          </div>
+                        ) : (
+                          <span>R$ {group[0].price.toFixed(2)}</span>
+                        )}
                       </span>
                       <span
                         className={`inline-flex items-center justify-center px-2 py-0.5 rounded-full text-xs font-medium ${getQuantityColor(
@@ -344,9 +354,21 @@ export default function InventoryTable({
 
                   <div className="mt-3">
                     <p className="text-sm text-muted-foreground">Valor Total</p>
-                    <Badge variant="outline" className="font-semibold bg-green-100 text-green-800">
-                      R$ {((shirt.price * shirt.quantity) + (shirt.ticket_price || 0)).toFixed(2)}
-                    </Badge>
+                    <div className="space-y-1">
+                      {shirt.ticket_price ? (
+                        <>
+                          <div className="text-sm">Camisa: R$ {shirt.price.toFixed(2)}</div>
+                          <div className="text-sm">Entrada: R$ {shirt.ticket_price.toFixed(2)}</div>
+                          <Badge variant="outline" className="font-semibold bg-green-100 text-green-800 mt-1">
+                            Total: R$ {((shirt.price * shirt.quantity) + shirt.ticket_price).toFixed(2)}
+                          </Badge>
+                        </>
+                      ) : (
+                        <Badge variant="outline" className="font-semibold bg-green-100 text-green-800">
+                          R$ {((shirt.price * shirt.quantity) + (shirt.ticket_price || 0)).toFixed(2)}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
 
                   <div className="mt-3">
@@ -419,9 +441,21 @@ export default function InventoryTable({
 
                 <div className="mt-3">
                   <p className="text-sm text-muted-foreground">Valor Total</p>
-                  <Badge variant="outline" className="font-semibold bg-green-100 text-green-800">
-                    R$ {((detailsShirt.price * detailsShirt.quantity) + (detailsShirt.ticket_price || 0)).toFixed(2)}
-                  </Badge>
+                  <div className="space-y-1">
+                    {detailsShirt?.ticket_price ? (
+                      <>
+                        <div className="text-sm">Camisa: R$ {detailsShirt.price.toFixed(2)}</div>
+                        <div className="text-sm">Entrada: R$ {detailsShirt.ticket_price.toFixed(2)}</div>
+                        <Badge variant="outline" className="font-semibold bg-green-100 text-green-800 mt-1">
+                          Total: R$ {((detailsShirt.price * detailsShirt.quantity) + detailsShirt.ticket_price).toFixed(2)}
+                        </Badge>
+                      </>
+                    ) : (
+                      <Badge variant="outline" className="font-semibold bg-green-100 text-green-800">
+                        R$ {((detailsShirt?.price || 0) * (detailsShirt?.quantity || 0)).toFixed(2)}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
 
                 <div className="mt-3">
@@ -571,7 +605,19 @@ export default function InventoryTable({
                       {shirt.quantity}
                     </span>
                   </TableCell>
-                  <TableCell className="text-right font-medium">R$ {shirt.price.toFixed(2)}</TableCell>
+                  <TableCell className="text-right font-medium">
+                    {shirt.ticket_price ? (
+                      <div className="flex flex-col text-right">
+                        <span>Camisa: R$ {shirt.price.toFixed(2)}</span>
+                        <span>Entrada: R$ {shirt.ticket_price.toFixed(2)}</span>
+                        <span className="font-bold mt-1 border-t border-gray-200 pt-1">
+                          Total: R$ {((shirt.price * shirt.quantity) + shirt.ticket_price).toFixed(2)}
+                        </span>
+                      </div>
+                    ) : (
+                      <span>R$ {shirt.price.toFixed(2)}</span>
+                    )}
+                  </TableCell>
                   <TableCell className="text-center">
                     <Button
                       variant={shirt.paid ? "default" : "outline"}
