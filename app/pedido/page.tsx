@@ -732,7 +732,7 @@ export default function PedidoPage() {
                 </div>
 
                 <p className="text-sm text-blue-600 mt-2">
-                  Se você escolher pagar agora via PIX, anexe o comprovante aqui. Caso contrário, você poderá combinar o pagamento após a confirmação do pedido.
+                  Insira o Comprovante Pix aqui. (OBRIGATÓRIO)
                 </p>
               </div>
             </div>
