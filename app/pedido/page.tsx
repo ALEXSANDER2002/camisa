@@ -643,8 +643,12 @@ export default function PedidoPage() {
                     <CreditCard className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0" />
                     <span className="font-medium">Valor da entrada:</span>
                   </div>
-                  <span className="font-bold text-lg">
-                    R$ {getSelectedTicketPrice().toFixed(2)}
+                  <span className="font-bold text-lg text-blue-600">
+                    {selectedTicket ? (
+                      `R$ ${getSelectedTicketPrice().toFixed(2)}`
+                    ) : (
+                      <span className="text-slate-400">Selecione um tipo de entrada</span>
+                    )}
                   </span>
                 </div>
 
@@ -654,7 +658,11 @@ export default function PedidoPage() {
                     <span className="font-medium">Total:</span>
                   </div>
                   <span className="font-bold text-lg text-green-600">
-                    R$ {getSelectedTicketPrice().toFixed(2)}
+                    {selectedTicket ? (
+                      `R$ ${getSelectedTicketPrice().toFixed(2)}`
+                    ) : (
+                      <span className="text-slate-400">Selecione um tipo de entrada</span>
+                    )}
                   </span>
                 </div>
               </div>
