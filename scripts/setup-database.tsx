@@ -178,7 +178,9 @@ model_number INTEGER,
 order_group UUID,
 image_url TEXT,
 payment_proof_url TEXT,
-payment_method TEXT
+payment_method TEXT,
+ticket_type TEXT,
+ticket_price DECIMAL(10, 2)
 );
 
 -- Inserir um exemplo inicial
