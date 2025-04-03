@@ -134,10 +134,6 @@ export default function PedidoPage() {
       newErrors.ticket = "Selecione um tipo de entrada"
     }
 
-    if (formData.quantity < 1) {
-      newErrors.quantity = "Quantidade deve ser pelo menos 1"
-    }
-
     if (payWithPix && !paymentProofFile) {
       newErrors.paymentProof = "Anexe o comprovante de pagamento"
     }
@@ -147,6 +143,8 @@ export default function PedidoPage() {
   }
 
   const handleChange = (field: string, value: any) => {
+    if (field === "quantity") return;
+
     setFormData((prev) => ({
       ...prev,
       [field]: value,
@@ -570,19 +568,13 @@ export default function PedidoPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="quantity" className="required flex items-center">
+                    <Label className="flex items-center">
                       <Package className="h-4 w-4 mr-1 text-muted-foreground" />
                       Quantidade
                     </Label>
-                    <Input
-                      id="quantity"
-                      type="number"
-                      value={formData.quantity}
-                      onChange={(e) => handleChange("quantity", Number.parseInt(e.target.value) || 1)}
-                      min="1"
-                      className={errors.quantity ? "border-destructive" : "border-slate-200"}
-                    />
-                    {errors.quantity && <p className="text-sm text-destructive">{errors.quantity}</p>}
+                    <div className="py-2 px-3 rounded-md border border-slate-200 bg-slate-50 text-slate-800">
+                      1 unidade (fixo)
+                    </div>
                   </div>
 
                   <div className="space-y-2">
