@@ -580,7 +580,7 @@ export default function PedidoPage() {
                   <div className="space-y-2">
                     <Label htmlFor="description" className="flex items-center">
                       <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
-                      Detalhes Adicionais (opcional)
+                      Detalhes Adicionais
                     </Label>
                     <Textarea
                       id="description"
@@ -663,7 +663,7 @@ export default function PedidoPage() {
               <div className="bg-white p-4 rounded-lg border-2 border-blue-200">
                 <div className="flex flex-col items-center">
                   <p className="text-base font-medium text-blue-600 mb-3">
-                    Pagamento via PIX (Opcional)
+                    Pagamento via PIX
                   </p>
                   <p className="text-sm text-gray-600 mb-4 text-center">
                     Você pode pagar agora via PIX ou combinar o pagamento depois da confirmação do pedido
@@ -688,7 +688,7 @@ export default function PedidoPage() {
               <div className="space-y-2 bg-white p-4 rounded-lg border border-slate-200 mt-4">
                 <Label htmlFor="payment-proof" className="flex items-center text-base font-medium">
                   <Upload className="h-4 w-4 mr-2 text-blue-600 flex-shrink-0" />
-                  Anexar Comprovante de Pagamento (Opcional)
+                  Anexar Comprovante de Pagamento
                 </Label>
 
                 <div className="grid gap-2">
