@@ -16,10 +16,8 @@ interface ShirtCardProps {
 export function ShirtCard({ id, name, image, description, isSelected, onSelect }: ShirtCardProps) {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   
-  // Gerando URL para a imagem das costas
-  const backImage = image.replace(/\.[^/.]+$/, "") + "-atras.jpg";
-  
-  const images = [image, backImage];
+  // Usando diretamente o arquivo atras.jpg
+  const images = [image, "/atras.jpg"];
   
   const nextImage = () => {
     setCurrentImageIndex((prev) => (prev + 1) % images.length);
