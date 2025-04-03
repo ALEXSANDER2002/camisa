@@ -368,14 +368,16 @@ export default function PedidoPage() {
         }
         
         // Garantir que os novos campos sejam enviados corretamente
-        if (selectedTicket && ticket) {
-          // @ts-ignore - Adicionando campos que podem não estar no tipo Shirt ainda
-          orderWithTicket.ticket_type = selectedTicket
-          // @ts-ignore
-          orderWithTicket.ticket_price = ticket.price
+        if (selectedTicket) {
+          const selectedTicketOption = ticketOptions.find(t => t.id === selectedTicket);
+          if (selectedTicketOption) {
+            orderWithTicket.ticket_type = selectedTicket;
+            orderWithTicket.ticket_price = selectedTicketOption.price;
+            console.log(`Adicionando ticket: ${selectedTicket} com preço: ${selectedTicketOption.price}`);
+          }
         }
         
-        console.log("Dados finais a serem enviados:", orderWithTicket)
+        console.log("Dados finais a serem enviados:", orderWithTicket);
         
         const { data, error: insertError } = await supabase
           .from("shirts")

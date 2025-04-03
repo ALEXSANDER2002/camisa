@@ -153,6 +153,8 @@ export async function addShirt(
     image_url: imageUrl,
     payment_method: shirtData.payment_method || null,
     payment_proof_url: paymentProofUrl || null,
+    ticket_type: shirtData.ticket_type ? String(shirtData.ticket_type) : null,
+    ticket_price: typeof shirtData.ticket_price === 'number' ? shirtData.ticket_price : null
   }
 
   const { data, error } = await supabase.from("shirts").insert([newShirt]).select()
@@ -179,6 +181,8 @@ export async function addShirt(
     image_url: newShirt.image_url,
     payment_method: newShirt.payment_method || undefined,
     payment_proof_url: newShirt.payment_proof_url || undefined,
+    ticket_type: newShirt.ticket_type || undefined,
+    ticket_price: typeof newShirt.ticket_price === 'number' ? newShirt.ticket_price : undefined
   }
 }
 
