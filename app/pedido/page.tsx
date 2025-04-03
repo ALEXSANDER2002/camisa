@@ -16,6 +16,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
@@ -31,10 +32,13 @@ import {
   CreditCard,
   PartyPopper,
   ShirtIcon,
+  AlertCircle,
+  RefreshCw
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { v4 as uuidv4 } from "uuid"
 import { ShirtCard } from "@/components/shirt-card"
+import { ensureSupabaseBucket } from "@/lib/actions"
 
 const sizeOptions = ["P", "M", "G", "GG", "XGG", "P BL", "M BL", "G BL", "GG BL"]
 const colorOptions = ["Preto"]
@@ -96,6 +100,24 @@ export default function PedidoPage() {
 
   // Estado para armazenar o tipo de entrada selecionado
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null)
+
+  // Verificar se o bucket existe ao carregar o componente
+  useEffect(() => {
+    const checkBucket = async () => {
+      try {
+        const bucketExists = await ensureSupabaseBucket()
+        if (!bucketExists) {
+          console.error("Não foi possível garantir que o bucket de armazenamento exista")
+        } else {
+          console.log("Bucket de armazenamento verificado com sucesso")
+        }
+      } catch (error) {
+        console.error("Erro ao verificar bucket:", error)
+      }
+    }
+
+    checkBucket()
+  }, [])
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -250,6 +272,11 @@ export default function PedidoPage() {
         modelNumber = 1
       }
 
+      // Adicionar console.log para ajudar a depurar
+      console.log("Valores do formulário:", formData)
+      console.log("Modelo selecionado:", model)
+      console.log("Ticket selecionado:", ticket)
+
       const order = {
         id: uuidv4(),
         name: formData.name,
@@ -267,6 +294,8 @@ export default function PedidoPage() {
         ticket_type: selectedTicket,
         ticket_price: getSelectedTicketPrice()
       }
+
+      console.log("Dados do pedido a serem enviados:", order)
 
       // Fazer upload do comprovante se existir
       let paymentProofUrl = null
@@ -286,6 +315,8 @@ export default function PedidoPage() {
             throw new Error("O arquivo deve ter no máximo 5MB")
           }
 
+          console.log("Tentando fazer upload do comprovante...")
+
           const { data, error: uploadError } = await supabase.storage
             .from("shirts")
             .upload(filePath, paymentProofFile, {
@@ -304,6 +335,8 @@ export default function PedidoPage() {
             }
           }
 
+          console.log("Upload do comprovante realizado com sucesso:", data)
+
           const { data: urlData } = supabase.storage
             .from("shirts")
             .getPublicUrl(filePath)
@@ -314,39 +347,68 @@ export default function PedidoPage() {
 
           paymentProofUrl = urlData.publicUrl
           order.paid = true
+          
+          console.log("URL do comprovante obtida:", paymentProofUrl)
         } catch (error) {
           console.error("Erro ao processar comprovante:", error)
           throw new Error(error instanceof Error ? error.message : "Erro ao processar o comprovante")
         }
       }
 
-      // Inserir pedido com comprovante
-      const { error: insertError } = await supabase.from("shirts").insert([
-        {
-          ...order,
-          payment_proof_url: paymentProofUrl,
-        },
-      ])
-
-      if (insertError) {
-        console.error("Erro ao inserir pedido:", insertError)
-        throw new Error("Falha ao salvar o pedido. Por favor, tente novamente.")
+      // Verificar se o Supabase está configurado corretamente
+      if (!supabase) {
+        throw new Error("Falha na conexão com o banco de dados. Por favor, tente novamente mais tarde.")
       }
 
-      // Limpar formulário e mostrar diálogo de sucesso
-      setFormData({
-        name: "",
-        size: "M",
-        quantity: 1,
-        description: "",
-        ticketType: ""
-      })
-      setSelectedModel(null)
-      setSelectedTicket(null)
-      setPaymentProofFile(null)
-      setPaymentProofPreview(null)
-      setSuccess(true)
-      setShowSuccessDialog(true) // Mostrar diálogo apenas após sucesso do envio
+      console.log("Enviando pedido para o Supabase...")
+
+      try {
+        // Inserir pedido com comprovante
+        const orderWithTicket = {
+          ...order,
+          payment_proof_url: paymentProofUrl,
+        }
+        
+        // Garantir que os novos campos sejam enviados corretamente
+        if (selectedTicket && ticket) {
+          // @ts-ignore - Adicionando campos que podem não estar no tipo Shirt ainda
+          orderWithTicket.ticket_type = selectedTicket
+          // @ts-ignore
+          orderWithTicket.ticket_price = ticket.price
+        }
+        
+        console.log("Dados finais a serem enviados:", orderWithTicket)
+        
+        const { data, error: insertError } = await supabase
+          .from("shirts")
+          .insert([orderWithTicket])
+          .select()
+
+        console.log("Resposta do Supabase:", { data, error: insertError })
+
+        if (insertError) {
+          console.error("Erro ao inserir pedido:", insertError)
+          throw new Error("Falha ao salvar o pedido: " + insertError.message)
+        }
+
+        // Limpar formulário e mostrar diálogo de sucesso
+        setFormData({
+          name: "",
+          size: "M",
+          quantity: 1,
+          description: "",
+          ticketType: ""
+        })
+        setSelectedModel(null)
+        setSelectedTicket(null)
+        setPaymentProofFile(null)
+        setPaymentProofPreview(null)
+        setSuccess(true)
+        setShowSuccessDialog(true) // Mostrar diálogo apenas após sucesso do envio
+      } catch (innerError) {
+        console.error("Erro durante inserção:", innerError)
+        throw innerError
+      }
     } catch (error) {
       console.error("Erro ao enviar pedido:", error)
       setErrors({
@@ -406,10 +468,29 @@ export default function PedidoPage() {
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="pt-6 px-4 sm:px-6">
+          <CardContent className="p-4 sm:p-6">
             {errors.form && (
               <Alert variant="destructive" className="mb-6">
-                <AlertDescription>{errors.form}</AlertDescription>
+                <AlertCircle className="h-4 w-4 mr-2" />
+                <AlertDescription className="flex justify-between items-center">
+                  <span>{errors.form}</span>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="ml-2" 
+                    onClick={() => window.location.reload()}
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" /> Recarregar
+                  </Button>
+                </AlertDescription>
+              </Alert>
+            )}
+            {success && (
+              <Alert className="mb-6 bg-green-50 border-green-200">
+                <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
+                <AlertDescription className="text-green-700">
+                  Pedido enviado com sucesso! Obrigado pelo seu pedido.
+                </AlertDescription>
               </Alert>
             )}
 

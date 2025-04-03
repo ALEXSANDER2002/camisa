@@ -74,13 +74,19 @@ export async function uploadImage(file: File): Promise<string | null> {
 }
 
 // Adicionar função para upload do comprovante de pagamento
-export async function uploadPaymentProof(file: File): Promise<string | null> {
+export async function uploadPaymentProof(file: File): Promise<string | undefined> {
   // Verificar se o Supabase está configurado
   if (!isSupabaseConfigured()) {
     throw new Error("Supabase não está configurado. Verifique as variáveis de ambiente.")
   }
 
   try {
+    // Verificar e garantir que o bucket existe
+    const bucketExists = await ensureSupabaseBucket()
+    if (!bucketExists) {
+      throw new Error("Não foi possível garantir que o bucket de armazenamento exista")
+    }
+
     // Gerar um nome único para o arquivo
     const fileExt = file.name.split(".").pop()
     const fileName = `${uuidv4()}.${fileExt}`
@@ -100,7 +106,7 @@ export async function uploadPaymentProof(file: File): Promise<string | null> {
     return urlData.publicUrl
   } catch (error) {
     console.error("Erro ao fazer upload do comprovante:", error)
-    return null
+    return undefined
   }
 }
 
@@ -301,6 +307,48 @@ export async function updatePaymentStatus(id: string, paid: boolean) {
   } catch (error) {
     console.error("Erro ao atualizar status de pagamento:", error)
     throw error
+  }
+}
+
+// Verificar se o bucket de armazenamento existe e criar se necessário
+export async function ensureSupabaseBucket(): Promise<boolean> {
+  if (!isSupabaseConfigured()) {
+    console.error("Supabase não está configurado. Verifique as variáveis de ambiente.")
+    return false
+  }
+
+  try {
+    // Verificar se o bucket 'shirts' existe
+    const { data: buckets, error: bucketsError } = await supabase.storage.listBuckets()
+    
+    if (bucketsError) {
+      console.error("Erro ao listar buckets:", bucketsError)
+      return false
+    }
+    
+    const shirtsBucketExists = buckets.some(bucket => bucket.name === 'shirts')
+    
+    if (!shirtsBucketExists) {
+      console.log("Bucket 'shirts' não encontrado. Tentando criar...")
+      
+      // Criar o bucket com acesso público
+      const { error: createError } = await supabase.storage.createBucket('shirts', {
+        public: true,
+        fileSizeLimit: 5 * 1024 * 1024 // 5MB
+      })
+      
+      if (createError) {
+        console.error("Erro ao criar bucket:", createError)
+        return false
+      }
+      
+      console.log("Bucket 'shirts' criado com sucesso!")
+    }
+    
+    return true
+  } catch (error) {
+    console.error("Erro ao verificar/criar bucket:", error)
+    return false
   }
 }
 
