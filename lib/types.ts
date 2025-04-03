@@ -14,5 +14,7 @@ export interface Shirt {
   image_url?: string // URL da imagem do modelo
   payment_method?: "pix" | "outro" | null // Método de pagamento
   payment_proof_url?: string // URL do comprovante de pagamento
+  ticket_type?: string // Tipo de ingresso ("inteira" ou "meia")
+  ticket_price?: number // Preço do ingresso
 }
 

@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useState, useEffect } from "react"
-import { SlidersHorizontal, Ruler, Palette, ShirtIcon, DollarSign, Package, X, CreditCard } from "lucide-react"
+import { SlidersHorizontal, Ruler, ShirtIcon, DollarSign, Package, X, CreditCard, Ticket } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useMediaQuery } from "@/hooks/use-media-query"
 
@@ -22,19 +22,22 @@ interface FilterDialogProps {
   onOpenChange: (open: boolean) => void
   filters: {
     size: string
-    color: string
-    material: string
     minPrice: string
     maxPrice: string
     minQuantity: string
     maxQuantity: string
     paid: string
+    ticketType: string
   }
   onApply: (filters: FilterDialogProps["filters"]) => void
   onReset: () => void
 }
 
 const sizeOptions = ["PP", "P", "M", "G", "GG", "XGG"]
+const ticketOptions = [
+  { id: "inteira", name: "Entrada Inteira" },
+  { id: "meia", name: "Meia Entrada" }
+]
 
 export default function FilterDialog({ open, onOpenChange, filters, onApply, onReset }: FilterDialogProps) {
   const [localFilters, setLocalFilters] = useState(filters)
@@ -87,7 +90,7 @@ export default function FilterDialog({ open, onOpenChange, filters, onApply, onR
                 <SelectValue placeholder="Qualquer tamanho" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Qualquer tamanho</SelectItem>
+                <SelectItem value="">Qualquer tamanho</SelectItem>
                 {sizeOptions.map((size) => (
                   <SelectItem key={size} value={size}>
                     {size}
@@ -98,53 +101,23 @@ export default function FilterDialog({ open, onOpenChange, filters, onApply, onR
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="filter-color" className="flex items-center">
-              <Palette className="h-4 w-4 mr-1 text-muted-foreground" />
-              Cor
+            <Label htmlFor="filter-ticket-type" className="flex items-center">
+              <Ticket className="h-4 w-4 mr-1 text-muted-foreground" />
+              Tipo de Entrada
             </Label>
-            <div className="relative">
-              <Input
-                id="filter-color"
-                value={localFilters.color}
-                onChange={(e) => handleChange("color", e.target.value)}
-                placeholder="Qualquer cor"
-              />
-              {localFilters.color && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-0"
-                  onClick={() => handleChange("color", "")}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="filter-material" className="flex items-center">
-              <ShirtIcon className="h-4 w-4 mr-1 text-muted-foreground" />
-              Material
-            </Label>
-            <div className="relative">
-              <Input
-                id="filter-material"
-                value={localFilters.material}
-                onChange={(e) => handleChange("material", e.target.value)}
-                placeholder="Qualquer material"
-              />
-              {localFilters.material && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-0"
-                  onClick={() => handleChange("material", "")}
-                >
-                  <X className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
+            <Select value={localFilters.ticketType} onValueChange={(value) => handleChange("ticketType", value)}>
+              <SelectTrigger id="filter-ticket-type">
+                <SelectValue placeholder="Qualquer tipo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Qualquer tipo</SelectItem>
+                {ticketOptions.map((ticket) => (
+                  <SelectItem key={ticket.id} value={ticket.id}>
+                    {ticket.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className={`grid ${isMobile ? "grid-cols-1 gap-4" : "grid-cols-2 gap-5"}`}>

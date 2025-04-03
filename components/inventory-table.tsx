@@ -95,22 +95,27 @@ export default function InventoryTable({
     return "bg-green-100 text-green-800"
   }
 
-  // Atualizar a função getModelName para incluir os novos modelos
-
   // Atualizar a função getModelName para usar os nomes específicos das camisetas
   const getModelName = (modelNumber: number | undefined) => {
     if (!modelNumber) return "Não especificado"
     switch (modelNumber) {
       case 1:
-        return "Camisa Polo Azul PSICOLOGIA"
-      case 2:
-        return "Camisa Polo Preta PSICOLOGIA"
-      case 3:
-        return "Camiseta Azul PSICOLOGIA UNAMA"
-      case 4:
-        return "Camiseta Preta PSICOLOGIA UNAMA"
+        return "Camisa Bits - Edição Especial"
       default:
         return "Modelo " + modelNumber
+    }
+  }
+
+  // Função para obter o nome do tipo de ingresso
+  const getTicketTypeName = (ticketType: string | undefined) => {
+    if (!ticketType) return "Não especificado"
+    switch (ticketType) {
+      case "inteira":
+        return "Entrada Inteira (R$ 58,00)"
+      case "meia":
+        return "Meia Entrada (R$ 29,00)"
+      default:
+        return ticketType
     }
   }
 
@@ -286,282 +291,161 @@ export default function InventoryTable({
 
         {/* Diálogo de detalhes para visualização em dispositivos móveis */}
         <AlertDialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
-          <AlertDialogContent className="max-w-md w-[95vw] p-4 sm:p-6 max-h-[90vh] overflow-y-auto">
+          <AlertDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <AlertDialogHeader>
-              <AlertDialogTitle>Detalhes do Pedido</AlertDialogTitle>
+              <AlertDialogTitle className="flex items-center">
+                <ShirtIcon className="h-5 w-5 mr-2 text-primary" />
+                Detalhes do Pedido
+              </AlertDialogTitle>
             </AlertDialogHeader>
-            {detailsShirt && (
-              <div className="space-y-4 py-2 max-h-[60vh] overflow-y-auto">
-                <div>
-                  <p className="text-sm text-muted-foreground">Nome do Cliente</p>
-                  <p className="font-medium">
-                    {Array.isArray(detailsShirt) ? detailsShirt[0].name : detailsShirt.name}
-                  </p>
-                </div>
 
-                {/* Se for um array (grupo de modelos), mostrar cada modelo */}
-                {Array.isArray(detailsShirt) ? (
-                  detailsShirt.map((shirt, index) => (
-                    <div key={shirt.id} className="border rounded-lg p-3 bg-gray-50">
-                      <h4 className="font-medium mb-2 flex items-center">
-                        <ShirtIcon className="h-4 w-4 mr-2 text-pink-500" />
-                        {getModelName(shirt.model_number)} (Modelo {shirt.model_number || index + 1})
-                      </h4>
+            {Array.isArray(detailsShirt) ? (
+              detailsShirt.map((shirt, index) => (
+                <div key={shirt.id} className="border rounded-lg p-3 bg-gray-50">
+                  <h4 className="font-medium mb-2 flex items-center">
+                    <ShirtIcon className="h-4 w-4 mr-2 text-pink-500" />
+                    {getModelName(shirt.model_number)} (Modelo {shirt.model_number || index + 1})
+                  </h4>
 
-                      {/* Exibir a imagem do modelo */}
-                      {shirt.image_url && (
-                        <div className="mb-3">
-                          <img
-                            src={shirt.image_url || "/placeholder.svg"}
-                            alt={`Modelo ${shirt.model_number || index + 1}`}
-                            className="w-full h-48 object-contain border rounded-md"
-                          />
-                        </div>
-                      )}
-
-                      <div className="grid grid-cols-2 gap-2">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Tamanho</p>
-                          <Badge variant="outline" className="font-semibold">
-                            {shirt.size}
-                          </Badge>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Cor</p>
-                          <div className="flex items-center gap-2">
-                            <div
-                              className="w-4 h-4 rounded-full border shadow-sm"
-                              style={{ backgroundColor: shirt.color.toLowerCase() }}
-                            />
-                            {shirt.color}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Material</p>
-                          <p>{shirt.material}</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Quantidade</p>
-                          <span
-                            className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium ${getQuantityColor(
-                              shirt.quantity,
-                            )}`}
-                          >
-                            {shirt.quantity}
-                          </span>
-                        </div>
-                      </div>
-
-                      {shirt.description && (
-                        <div className="mt-2">
-                          <p className="text-sm text-muted-foreground">Descrição</p>
-                          <p className="text-sm">{shirt.description}</p>
-                        </div>
-                      )}
+                  {/* Exibir a imagem do modelo */}
+                  {shirt.image_url && (
+                    <div className="mb-3">
+                      <img
+                        src={shirt.image_url || "/FRENTE[1].png"}
+                        alt={`Modelo ${shirt.model_number || index + 1}`}
+                        className="w-full h-64 object-contain border rounded-md mx-auto"
+                      />
                     </div>
-                  ))
-                ) : (
-                  // Mostrar um único modelo (compatibilidade com versão anterior)
-                  <>
-                    {/* Adicionar informação do modelo */}
-                    <div className="mb-2">
-                      <p className="text-sm text-muted-foreground">Modelo</p>
-                      <Badge variant="outline" className="bg-pink-100 text-pink-800 border-pink-200">
-                        <ShirtIcon className="h-3 w-3 mr-1" />
-                        {getModelName(detailsShirt.model_number)}
+                  )}
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Tamanho</p>
+                      <Badge variant="outline" className="font-semibold">
+                        {shirt.size}
                       </Badge>
                     </div>
-
-                    {/* Exibir a imagem do modelo */}
-                    {detailsShirt.image_url && (
-                      <div className="mb-3">
-                        <img
-                          src={detailsShirt.image_url || "/poloa_preta.jpeg"}
-                          alt="Modelo da camiseta"
-                          className="w-full h-48 object-contain border rounded-md"
-                        />
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Tamanho</p>
-                        <Badge variant="outline" className="font-semibold">
-                          {detailsShirt.size}
-                        </Badge>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Cor</p>
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-4 h-4 rounded-full border shadow-sm"
-                            style={{ backgroundColor: detailsShirt.color.toLowerCase() }}
-                          />
-                          {detailsShirt.color}
-                        </div>
-                      </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Quantidade</p>
+                      <Badge variant="outline" className="font-semibold">
+                        {shirt.quantity}
+                      </Badge>
                     </div>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <p className="text-sm text-muted-foreground">Material</p>
-                        <p>{detailsShirt.material}</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-muted-foreground">Quantidade</p>
-                        <span
-                          className={`inline-flex items-center justify-center px-2 py-1 rounded-full text-xs font-medium ${getQuantityColor(
-                            detailsShirt.quantity,
-                          )}`}
-                        >
-                          {detailsShirt.quantity}
-                        </span>
-                      </div>
+                  {shirt.ticket_type && (
+                    <div className="mt-3">
+                      <p className="text-sm text-muted-foreground">Entrada</p>
+                      <Badge variant="outline" className="font-semibold bg-blue-100 text-blue-800">
+                        {getTicketTypeName(shirt.ticket_type)}
+                      </Badge>
                     </div>
+                  )}
 
-                    {detailsShirt.description && (
-                      <div>
-                        <p className="text-sm text-muted-foreground">Descrição</p>
-                        <p className="text-sm">{detailsShirt.description}</p>
-                      </div>
-                    )}
-                  </>
+                  <div className="mt-3">
+                    <p className="text-sm text-muted-foreground">Valor Total</p>
+                    <Badge variant="outline" className="font-semibold bg-green-100 text-green-800">
+                      R$ {((shirt.price * shirt.quantity) + (shirt.ticket_price || 0)).toFixed(2)}
+                    </Badge>
+                  </div>
+
+                  <div className="mt-3">
+                    <p className="text-sm text-muted-foreground">Status do Pagamento</p>
+                    <div className="flex items-center">
+                      <Badge
+                        variant="outline"
+                        className={shirt.paid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
+                      >
+                        {shirt.paid ? "Pago" : "Pendente"}
+                      </Badge>
+                      {renderPaymentProofLink(shirt.payment_proof_url)}
+                    </div>
+                  </div>
+
+                  {shirt.description && (
+                    <div className="mt-3">
+                      <p className="text-sm text-muted-foreground">Descrição</p>
+                      <p className="text-sm">{shirt.description}</p>
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              // Mostrar um único modelo (compatibilidade com versão anterior)
+              <>
+                {/* Adicionar informação do modelo */}
+                <div className="mb-2">
+                  <p className="text-sm text-muted-foreground">Modelo</p>
+                  <Badge variant="outline" className="bg-pink-100 text-pink-800 border-pink-200">
+                    <ShirtIcon className="h-3 w-3 mr-1" />
+                    {getModelName(detailsShirt.model_number)}
+                  </Badge>
+                </div>
+
+                {/* Exibir a imagem do modelo */}
+                {detailsShirt.image_url && (
+                  <div className="mb-3">
+                    <img
+                      src={detailsShirt.image_url || "/FRENTE[1].png"}
+                      alt="Modelo da camiseta"
+                      className="w-full h-64 object-contain border rounded-md mx-auto"
+                    />
+                  </div>
                 )}
 
                 <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <p className="text-sm text-muted-foreground">Preço Total</p>
-                    <p className="font-medium">
-                      R${" "}
-                      {Array.isArray(detailsShirt)
-                        ? detailsShirt.reduce((sum, shirt) => sum + shirt.price * shirt.quantity, 0).toFixed(2)
-                        : (detailsShirt.price * detailsShirt.quantity).toFixed(2)}
-                    </p>
+                    <p className="text-sm text-muted-foreground">Tamanho</p>
+                    <Badge variant="outline" className="font-semibold">
+                      {detailsShirt.size}
+                    </Badge>
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Status de Pagamento</p>
-                    {(Array.isArray(detailsShirt) ? detailsShirt[0].paid : detailsShirt.paid) !== undefined ? (
-                      (Array.isArray(detailsShirt) ? detailsShirt[0].paid : detailsShirt.paid) ? (
-                        <Badge
-                          variant="outline"
-                          className="bg-green-100 text-green-800 border-green-200 flex items-center gap-1"
-                        >
-                          <CheckCircle className="h-3 w-3" /> Pago
-                        </Badge>
-                      ) : (
-                        <Badge
-                          variant="outline"
-                          className="bg-red-100 text-red-800 border-red-200 flex items-center gap-1"
-                        >
-                          <XCircle className="h-3 w-3" /> Não Pago
-                        </Badge>
-                      )
-                    ) : (
-                      <Badge variant="outline" className="bg-gray-100 text-gray-800 border-gray-200">
-                        N/A
-                      </Badge>
-                    )}
+                    <p className="text-sm text-muted-foreground">Quantidade</p>
+                    <Badge variant="outline" className="font-semibold">
+                      {detailsShirt.quantity}
+                    </Badge>
                   </div>
                 </div>
-                {Array.isArray(detailsShirt)
-                  ? detailsShirt[0].payment_method && (
-                      <div className="mt-2">
-                        <p className="text-sm text-muted-foreground">Método de Pagamento</p>
-                        <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
-                          {getPaymentMethodName(detailsShirt[0].payment_method)}
-                        </Badge>
-                        {Array.isArray(detailsShirt)
-                          ? detailsShirt[0].payment_proof_url && (
-                              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                                <h4 className="font-medium text-blue-800 mb-2 flex items-center">
-                                  <CreditCard className="h-4 w-4 mr-2 text-blue-600" />
-                                  Comprovante de Pagamento
-                                </h4>
-                                <div className="flex flex-col gap-2">
-                                  <a
-                                    href={detailsShirt[0].payment_proof_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:underline text-sm flex items-center"
-                                  >
-                                    <CreditCard className="h-3 w-3 mr-1" />
-                                    Ver comprovante em tela cheia
-                                  </a>
-                                  <div className="border rounded-md overflow-hidden mt-1">
-                                    <img
-                                      src={detailsShirt[0].payment_proof_url || "/placeholder.svg"}
-                                      alt="Comprovante de pagamento"
-                                      className="max-h-48 w-full object-contain"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            )
-                          : detailsShirt.payment_proof_url && (
-                              <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
-                                <h4 className="font-medium text-blue-800 mb-2 flex items-center">
-                                  <CreditCard className="h-4 w-4 mr-2 text-blue-600" />
-                                  Comprovante de Pagamento
-                                </h4>
-                                <div className="flex flex-col gap-2">
-                                  <a
-                                    href={detailsShirt.payment_proof_url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-blue-600 hover:underline text-sm flex items-center"
-                                  >
-                                    <CreditCard className="h-3 w-3 mr-1" />
-                                    Ver comprovante em tela cheia
-                                  </a>
-                                  <div className="border rounded-md overflow-hidden mt-1">
-                                    <img
-                                      src={detailsShirt.payment_proof_url || "/placeholder.svg"}
-                                      alt="Comprovante de pagamento"
-                                      className="max-h-48 w-full object-contain"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                      </div>
-                    )
-                  : detailsShirt.payment_method && (
-                      <div className="mt-2">
-                        <p className="text-sm text-muted-foreground">Método de Pagamento</p>
-                        <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
-                          {getPaymentMethodName(detailsShirt.payment_method)}
-                        </Badge>
 
-                        {detailsShirt.payment_proof_url && (
-                          <div className="mt-2">
-                            <p className="text-sm text-muted-foreground">Comprovante</p>
-                            <div className="flex flex-col gap-2">
-                              <a
-                                href={detailsShirt.payment_proof_url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-pink-600 hover:underline text-sm flex items-center"
-                              >
-                                <CreditCard className="h-3 w-3 mr-1" />
-                                Ver comprovante
-                              </a>
-                              <div className="border rounded-md overflow-hidden mt-1">
-                                <img
-                                  src={detailsShirt.payment_proof_url || "/placeholder.svg"}
-                                  alt="Comprovante de pagamento"
-                                  className="max-h-32 w-full object-contain"
-                                />
-                              </div>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-              </div>
+                {detailsShirt.ticket_type && (
+                  <div className="mt-3">
+                    <p className="text-sm text-muted-foreground">Entrada</p>
+                    <Badge variant="outline" className="font-semibold bg-blue-100 text-blue-800">
+                      {getTicketTypeName(detailsShirt.ticket_type)}
+                    </Badge>
+                  </div>
+                )}
+
+                <div className="mt-3">
+                  <p className="text-sm text-muted-foreground">Valor Total</p>
+                  <Badge variant="outline" className="font-semibold bg-green-100 text-green-800">
+                    R$ {((detailsShirt.price * detailsShirt.quantity) + (detailsShirt.ticket_price || 0)).toFixed(2)}
+                  </Badge>
+                </div>
+
+                <div className="mt-3">
+                  <p className="text-sm text-muted-foreground">Status do Pagamento</p>
+                  <div className="flex items-center">
+                    <Badge
+                      variant="outline"
+                      className={detailsShirt.paid ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}
+                    >
+                      {detailsShirt.paid ? "Pago" : "Pendente"}
+                    </Badge>
+                    {renderPaymentProofLink(detailsShirt.payment_proof_url)}
+                  </div>
+                </div>
+
+                {detailsShirt.description && (
+                  <div className="mt-3">
+                    <p className="text-sm text-muted-foreground">Descrição</p>
+                    <p className="text-sm">{detailsShirt.description}</p>
+                  </div>
+                )}
+              </>
             )}
+
             <AlertDialogFooter>
               <AlertDialogCancel>Fechar</AlertDialogCancel>
               <Button

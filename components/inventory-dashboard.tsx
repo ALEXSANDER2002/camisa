@@ -43,13 +43,12 @@ export default function InventoryDashboard() {
   const [tableExists, setTableExists] = useState(true)
   const [filters, setFilters] = useState({
     size: "",
-    color: "",
-    material: "",
     minPrice: "",
     maxPrice: "",
     minQuantity: "",
     maxQuantity: "",
     paid: "",
+    ticketType: "",
   })
 
   // Verificar se o Supabase está configurado
@@ -105,9 +104,8 @@ export default function InventoryDashboard() {
       result = result.filter(
         (shirt) =>
           shirt.name.toLowerCase().includes(query) ||
-          shirt.color.toLowerCase().includes(query) ||
-          shirt.material.toLowerCase().includes(query) ||
-          shirt.description?.toLowerCase().includes(query),
+          shirt.description?.toLowerCase().includes(query) ||
+          (shirt.ticket_type && shirt.ticket_type.toLowerCase().includes(query)),
       )
     }
 
@@ -116,12 +114,8 @@ export default function InventoryDashboard() {
       result = result.filter((shirt) => shirt.size === filters.size)
     }
 
-    if (filters.color) {
-      result = result.filter((shirt) => shirt.color.toLowerCase().includes(filters.color.toLowerCase()))
-    }
-
-    if (filters.material) {
-      result = result.filter((shirt) => shirt.material.toLowerCase().includes(filters.material.toLowerCase()))
+    if (filters.ticketType) {
+      result = result.filter((shirt) => shirt.ticket_type === filters.ticketType)
     }
 
     if (filters.minPrice) {
@@ -215,31 +209,43 @@ export default function InventoryDashboard() {
   const handleFilterReset = () => {
     setFilters({
       size: "",
-      color: "",
-      material: "",
       minPrice: "",
       maxPrice: "",
       minQuantity: "",
       maxQuantity: "",
       paid: "",
+      ticketType: "",
     })
     setIsFilterOpen(false)
   }
 
   // Calcular estatísticas
   const totalShirts = shirts.reduce((sum, shirt) => sum + shirt.quantity, 0)
-  const totalValue = shirts.reduce((sum, shirt) => sum + shirt.price * shirt.quantity, 0)
-  const uniqueColors = new Set(shirts.map((shirt) => shirt.color)).size
-
+  
+  // Incluir ticket_price no cálculo de valor total
+  const totalValue = shirts.reduce((sum, shirt) => {
+    const ticketPrice = shirt.ticket_price || 0
+    return sum + ((shirt.price * shirt.quantity) + ticketPrice)
+  }, 0)
+  
   // Estatísticas de pagamento
   const paidShirts = shirts.filter((shirt) => shirt.paid === true).length
   const unpaidShirts = shirts.filter((shirt) => shirt.paid === false).length
+  
+  // Incluir ticket_price no cálculo de valor pago e não pago
   const paidValue = shirts
     .filter((shirt) => shirt.paid === true)
-    .reduce((sum, shirt) => sum + shirt.price * shirt.quantity, 0)
+    .reduce((sum, shirt) => {
+      const ticketPrice = shirt.ticket_price || 0
+      return sum + ((shirt.price * shirt.quantity) + ticketPrice)
+    }, 0)
+    
   const unpaidValue = shirts
     .filter((shirt) => shirt.paid === false)
-    .reduce((sum, shirt) => sum + shirt.price * shirt.quantity, 0)
+    .reduce((sum, shirt) => {
+      const ticketPrice = shirt.ticket_price || 0
+      return sum + ((shirt.price * shirt.quantity) + ticketPrice)
+    }, 0)
 
   if (isLoading) {
     return (
@@ -444,7 +450,7 @@ VALUES (
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Cores Diferentes</p>
-                  <h3 className="text-2xl font-bold">{uniqueColors}</h3>
+                  <h3 className="text-2xl font-bold">{shirts.length}</h3>
                 </div>
               </CardContent>
             </Card>
@@ -614,13 +620,6 @@ VALUES (
 
             <Button onClick={() => setIsFormOpen(true)} className="flex-1 sm:flex-none bg-pink-500 hover:bg-pink-600">
               <PlusCircle className="h-4 w-4 mr-2" />
-              Adicionar
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      {/*  />
               Adicionar
             </Button>
           </div>

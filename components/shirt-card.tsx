@@ -20,24 +20,26 @@ export function ShirtCard({ id, name, image, description, isSelected, onSelect }
       }`}
       onClick={() => onSelect(id)}
     >
-      <div className="p-2">
+      <div className="p-4">
         <div className="flex flex-col items-center">
-          <div className="w-full flex-shrink-0 mb-3 flex justify-center">
-            <Image 
-              src={image} 
-              alt={name} 
-              width={200}
-              height={200}
-              className="object-contain"
-              priority
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = "/placeholder.svg";
-              }}
-            />
+          <div className="w-full flex-shrink-0 mb-5 flex justify-center">
+            <div className="border border-gray-200 rounded-lg p-3 bg-white">
+              <Image 
+                src={image} 
+                alt={name} 
+                width={350}
+                height={350}
+                className="object-contain mx-auto"
+                priority
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.src = "/placeholder.svg";
+                }}
+              />
+            </div>
           </div>
           <div className="p-2 text-center w-full">
-            <h3 className="font-medium text-sm sm:text-base mb-1">{name}</h3>
+            <h3 className="font-medium text-base sm:text-lg mb-2">{name}</h3>
             <p className="text-xs sm:text-sm text-muted-foreground">{description}</p>
           </div>
         </div>

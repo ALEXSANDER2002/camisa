@@ -22,8 +22,6 @@ import {
 import {
   User,
   Ruler,
-  Palette,
-  ShirtIcon,
   Package,
   DollarSign,
   FileText,
@@ -32,53 +30,47 @@ import {
   ArrowLeft,
   CreditCard,
   PartyPopper,
+  ShirtIcon,
 } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { v4 as uuidv4 } from "uuid"
 import { ShirtCard } from "@/components/shirt-card"
 
 const sizeOptions = ["P", "M", "G", "GG", "XGG", "P BL", "M BL", "G BL", "GG BL"]
-const colorOptions = ["Azul", "Preto"]
+const colorOptions = ["Preto"]
 
 // Modelos de camisetas disponíveis
 const shirtModels = [
   {
-    id: "polo-azul",
-    name: "Camisa Polo Azul PSICOLOGIA",
-    image: "/images/polo_azul.jpeg",
-    description: "Camisa polo azul com emblema de Psicologia e logo UNAMA.",
-    price: 56.00,
+    id: "camisa-bits",
+    name: "Camisa Bits - Edição Especial",
+    image: "/FRENTE[1].png",
+    description: "Camisa exclusiva com design único da Bits. Material de alta qualidade.",
+    price: 0.00, // Preço zero, apenas para visualização
+  },
+]
+
+// Opções de entrada
+const ticketOptions = [
+  {
+    id: "inteira",
+    name: "Entrada Inteira",
+    price: 58.00
   },
   {
-    id: "polo-preto",
-    name: "Camisa Polo Preta PSICOLOGIA",
-    image: "/images/poloazul.jpeg",
-    description: "Camisa polo preta com emblema de Psicologia e logo UNAMA.",
-    price: 56.00,
-  },
-  {
-    id: "camiseta-azul",
-    name: "Camiseta Azul PSICOLOGIA UNAMA",
-    image: "/images/azul.png",
-    description: "Camiseta azul com estampa PSICOLOGIA UNAMA.",
-    price: 50.00,
-  },
-  {
-    id: "camiseta-preta",
-    name: "Camiseta Preta PSICOLOGIA UNAMA",
-    image: "/images/preta.png",
-    description: "Camiseta preta com estampa PSICOLOGIA UNAMA.",
-    price: 50.00,
-  },
+    id: "meia",
+    name: "Meia Entrada",
+    price: 29.00
+  }
 ]
 
 export default function PedidoPage() {
   const [formData, setFormData] = useState({
     name: "",
     size: "M",
-    color: "",
     quantity: 1,
     description: "",
+    ticketType: ""
   })
 
   // Estado para armazenar o modelo selecionado
@@ -102,14 +94,8 @@ export default function PedidoPage() {
   // Estado para controlar o diálogo de sucesso
   const [showSuccessDialog, setShowSuccessDialog] = useState(false)
 
-  // Atualizar a cor automaticamente com base no modelo selecionado
-  useEffect(() => {
-    if (selectedModel === "polo-azul" || selectedModel === "camiseta-azul") {
-      handleChange("color", "Azul")
-    } else if (selectedModel === "polo-preto" || selectedModel === "camiseta-preta") {
-      handleChange("color", "Preto")
-    }
-  }, [selectedModel])
+  // Estado para armazenar o tipo de entrada selecionado
+  const [selectedTicket, setSelectedTicket] = useState<string | null>(null)
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -121,9 +107,9 @@ export default function PedidoPage() {
     if (!selectedModel) {
       newErrors.model = "Selecione um modelo de camiseta"
     }
-
-    if (!formData.color) {
-      newErrors.color = "Cor é obrigatória"
+    
+    if (!selectedTicket) {
+      newErrors.ticket = "Selecione um tipo de entrada"
     }
 
     if (formData.quantity < 1) {
@@ -166,12 +152,23 @@ export default function PedidoPage() {
         return newErrors
       })
     }
+  }
 
-    // Atualizar a cor automaticamente com base no modelo
-    if (modelId === "polo-azul" || modelId === "camiseta-azul") {
-      handleChange("color", "Azul")
-    } else if (modelId === "polo-preto" || modelId === "camiseta-preta") {
-      handleChange("color", "Preto")
+  // Função para selecionar um tipo de entrada
+  const handleSelectTicket = (ticketId: string) => {
+    setSelectedTicket(ticketId)
+    setFormData(prev => ({
+      ...prev,
+      ticketType: ticketId
+    }))
+
+    // Limpar erro de entrada quando uma é selecionada
+    if (errors.ticket) {
+      setErrors((prev) => {
+        const newErrors = { ...prev }
+        delete newErrors.ticket
+        return newErrors
+      })
     }
   }
 
@@ -216,6 +213,13 @@ export default function PedidoPage() {
     return model?.price || 0
   }
 
+  // Função para obter o preço do tipo de entrada selecionado
+  const getSelectedTicketPrice = () => {
+    if (!selectedTicket) return 0
+    const ticket = ticketOptions.find(t => t.id === selectedTicket)
+    return ticket?.price || 0
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -227,9 +231,14 @@ export default function PedidoPage() {
     try {
       // Obter o modelo selecionado
       const model = shirtModels.find((m) => m.id === selectedModel)
+      const ticket = ticketOptions.find((t) => t.id === selectedTicket)
 
       if (!model) {
         throw new Error("Modelo de camiseta não encontrado")
+      }
+      
+      if (!ticket) {
+        throw new Error("Tipo de entrada não encontrado")
       }
 
       // Criar pedido
@@ -237,21 +246,15 @@ export default function PedidoPage() {
 
       // Determinar o número do modelo com base no ID selecionado
       let modelNumber = 1 // Valor padrão
-      if (selectedModel === "polo-azul") {
+      if (selectedModel === "camisa-bits") {
         modelNumber = 1
-      } else if (selectedModel === "polo-preto") {
-        modelNumber = 2
-      } else if (selectedModel === "camiseta-azul") {
-        modelNumber = 3
-      } else if (selectedModel === "camiseta-preta") {
-        modelNumber = 4
       }
 
       const order = {
         id: uuidv4(),
         name: formData.name,
         size: formData.size,
-        color: formData.color,
+        color: "Preto", // Cor fixa para camisa bits
         material: "100% Algodão",
         quantity: formData.quantity,
         price: getSelectedModelPrice(),
@@ -261,6 +264,8 @@ export default function PedidoPage() {
         model_number: modelNumber,
         order_group: orderGroup,
         image_url: model.image,
+        ticket_type: selectedTicket,
+        ticket_price: getSelectedTicketPrice()
       }
 
       // Fazer upload do comprovante se existir
@@ -332,11 +337,12 @@ export default function PedidoPage() {
       setFormData({
         name: "",
         size: "M",
-        color: "",
         quantity: 1,
         description: "",
+        ticketType: ""
       })
       setSelectedModel(null)
+      setSelectedTicket(null)
       setPaymentProofFile(null)
       setPaymentProofPreview(null)
       setSuccess(true)
@@ -353,7 +359,7 @@ export default function PedidoPage() {
 
   // Função para copiar PIX
   const handleCopyPix = () => {
-    navigator.clipboard.writeText("94984507070")
+    navigator.clipboard.writeText("94991621667")
     alert("Número do PIX copiado!")
   }
 
@@ -412,10 +418,15 @@ export default function PedidoPage() {
               <div className="space-y-2">
                 <Label className="required flex items-center">
                   <ShirtIcon className="h-4 w-4 mr-1 text-muted-foreground flex-shrink-0" />
-                  Clique em um modelo de camiseta
+                  Camisa Bits - Clique para selecionar
                 </Label>
+                
+                <div className="text-center mb-4">
+                  <h3 className="text-xl font-bold text-blue-700">Camisa Bits Oficial</h3>
+                  <p className="text-gray-600">Clique na imagem abaixo para selecionar o modelo</p>
+                </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-6 mb-6">
                   {shirtModels.map((model) => (
                     <div key={model.id} className="relative">
                       <div className="absolute top-2 right-2 bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded-full z-10">
@@ -457,7 +468,7 @@ export default function PedidoPage() {
                   Detalhes da Camiseta
                 </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="size" className="required flex items-center">
                       <Ruler className="h-4 w-4 mr-1 text-muted-foreground" />
@@ -478,66 +489,97 @@ export default function PedidoPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="color" className="required flex items-center">
-                      <Palette className="h-4 w-4 mr-1 text-muted-foreground" />
-                      Cor
+                    <Label htmlFor="quantity" className="required flex items-center">
+                      <Package className="h-4 w-4 mr-1 text-muted-foreground" />
+                      Quantidade
                     </Label>
-                    <Input id="color" value={formData.color} readOnly disabled className="bg-gray-100" />
-                    <p className="text-xs text-muted-foreground">A cor é determinada pelo modelo selecionado</p>
+                    <Input
+                      id="quantity"
+                      type="number"
+                      value={formData.quantity}
+                      onChange={(e) => handleChange("quantity", Number.parseInt(e.target.value) || 1)}
+                      min="1"
+                      className={errors.quantity ? "border-destructive" : "border-slate-200"}
+                    />
+                    {errors.quantity && <p className="text-sm text-destructive">{errors.quantity}</p>}
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description" className="flex items-center">
+                      <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
+                      Detalhes Adicionais (opcional)
+                    </Label>
+                    <Textarea
+                      id="description"
+                      value={formData.description}
+                      onChange={(e) => handleChange("description", e.target.value)}
+                      placeholder="Descreva detalhes adicionais sobre sua camiseta, como estampas, bordados, etc."
+                      rows={3}
+                      className="border-slate-200"
+                    />
                   </div>
                 </div>
+              </div>
 
-                <div className="space-y-2 mt-4">
-                  <Label htmlFor="quantity" className="required flex items-center">
-                    <Package className="h-4 w-4 mr-1 text-muted-foreground" />
-                    Quantidade
-                  </Label>
-                  <Input
-                    id="quantity"
-                    type="number"
-                    value={formData.quantity}
-                    onChange={(e) => handleChange("quantity", Number.parseInt(e.target.value) || 1)}
-                    min="1"
-                    className={errors.quantity ? "border-destructive" : "border-slate-200"}
-                  />
-                  {errors.quantity && <p className="text-sm text-destructive">{errors.quantity}</p>}
+              {/* Seleção de tipo de entrada */}
+              <div className="space-y-2 mt-6">
+                <Label className="required flex items-center">
+                  <CreditCard className="h-4 w-4 mr-1 text-muted-foreground flex-shrink-0" />
+                  Selecione o tipo de entrada
+                </Label>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {ticketOptions.map((ticket) => (
+                    <div 
+                      key={ticket.id}
+                      className={`border rounded-lg p-4 cursor-pointer transition-all hover:shadow-md ${
+                        selectedTicket === ticket.id 
+                          ? "ring-2 ring-blue-600 border-blue-600 bg-blue-50" 
+                          : "border-gray-200 hover:border-blue-200"
+                      }`}
+                      onClick={() => handleSelectTicket(ticket.id)}
+                    >
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center">
+                          <div className={`w-5 h-5 rounded-full border flex items-center justify-center mr-3 ${
+                            selectedTicket === ticket.id 
+                              ? "border-blue-600 bg-blue-600" 
+                              : "border-gray-300"
+                          }`}>
+                            {selectedTicket === ticket.id && (
+                              <div className="w-2 h-2 rounded-full bg-white"></div>
+                            )}
+                          </div>
+                          <span className="font-medium">{ticket.name}</span>
+                        </div>
+                        <span className="font-bold text-green-600">R$ {ticket.price.toFixed(2)}</span>
+                      </div>
+                    </div>
+                  ))}
                 </div>
 
-                <div className="space-y-2 mt-4">
-                  <Label htmlFor="description" className="flex items-center">
-                    <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
-                    Detalhes Adicionais (opcional)
-                  </Label>
-                  <Textarea
-                    id="description"
-                    value={formData.description}
-                    onChange={(e) => handleChange("description", e.target.value)}
-                    placeholder="Descreva detalhes adicionais sobre sua camiseta, como estampas, bordados, etc."
-                    rows={3}
-                    className="border-slate-200"
-                  />
-                </div>
+                {errors.ticket && <p className="text-sm text-destructive">{errors.ticket}</p>}
               </div>
 
               {/* Área de pagamento */}
               <div className="bg-slate-50 p-4 rounded-lg border border-slate-200">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
                   <div className="flex items-center">
-                    <DollarSign className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0" />
-                    <span className="font-medium">Preço unitário:</span>
+                    <CreditCard className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0" />
+                    <span className="font-medium">Valor da entrada:</span>
                   </div>
                   <span className="font-bold text-lg">
-                    R$ {getSelectedModelPrice().toFixed(2)}
+                    R$ {getSelectedTicketPrice().toFixed(2)}
                   </span>
                 </div>
 
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
                   <div className="flex items-center">
                     <Package className="h-5 w-5 text-blue-600 mr-2 flex-shrink-0" />
-                    <span className="font-medium">Total ({formData.quantity} {formData.quantity > 1 ? 'unidades' : 'unidade'}):</span>
+                    <span className="font-medium">Total:</span>
                   </div>
                   <span className="font-bold text-lg text-green-600">
-                    R$ {(getSelectedModelPrice() * formData.quantity).toFixed(2)}
+                    R$ {getSelectedTicketPrice().toFixed(2)}
                   </span>
                 </div>
               </div>
@@ -555,8 +597,8 @@ export default function PedidoPage() {
                   </p>
                   <div className="bg-blue-50 p-4 rounded-lg w-full text-center mb-4 border border-blue-100">
                     <p className="text-sm text-gray-600 mb-2">Chave PIX:</p>
-                    <code className="text-xl font-bold text-blue-700 block mb-1">94 98450-7070</code>
-                    <p className="text-sm font-medium text-gray-600">(Nubank) Leticia Ellen</p>
+                    <code className="text-xl font-bold text-blue-700 block mb-1">94 99162-1667</code>
+                    <p className="text-sm font-medium text-gray-600">(PIC PAY) Kalleb Araújo</p>
                   </div>
                   <Button
                     type="button"

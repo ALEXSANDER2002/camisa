@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Heart, Lock, Mail, AlertCircle, RefreshCw, ArrowLeft } from "lucide-react"
+import { Lock, Mail, AlertCircle, RefreshCw, ArrowLeft, Code, Cpu, ChevronRight, Server, Database } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 
 export default function LoginPage() {
@@ -129,17 +129,46 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 to-white p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <div className="flex justify-center mb-4">
-            <div className="bg-pink-100 p-3 rounded-full">
-              <Heart className="h-8 w-8 text-pink-500" />
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-900 via-indigo-800 to-violet-900 p-4">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute w-full h-full opacity-10">
+          {[...Array(20)].map((_, i) => (
+            <div 
+              key={i} 
+              className="absolute rounded-full" 
+              style={{
+                width: `${Math.random() * 10 + 5}px`,
+                height: `${Math.random() * 10 + 5}px`,
+                background: `rgba(255, 255, 255, ${Math.random() * 0.5 + 0.2})`,
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                boxShadow: `0 0 ${Math.random() * 30 + 10}px rgba(100, 255, 255, 0.4)`,
+              }}
+            />
+          ))}
+        </div>
+        <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-blue-900 to-transparent opacity-80"></div>
+        <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-violet-900 to-transparent opacity-80"></div>
+      </div>
+      
+      <Card className="w-full max-w-md bg-white/90 backdrop-blur-sm border border-blue-200 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-blue-500 via-indigo-500 to-violet-500"></div>
+        <div className="absolute top-0 right-0 w-2 h-full bg-gradient-to-b from-violet-500 via-indigo-500 to-blue-500"></div>
+        
+        <CardHeader className="space-y-1 pb-6">
+          <div className="flex justify-center mb-5">
+            <div className="bg-gradient-to-br from-blue-600 to-violet-600 p-4 rounded-xl shadow-lg">
+              <Cpu className="h-10 w-10 text-white" />
             </div>
           </div>
-          <CardTitle className="text-2xl text-center">Boutique Ana</CardTitle>
-          <CardDescription className="text-center">Entre com suas credenciais de administrador</CardDescription>
+          <CardTitle className="text-2xl text-center font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-violet-600">
+            Bits Jr Admin
+          </CardTitle>
+          <CardDescription className="text-center text-gray-600">
+            Acesse o painel administrativo da Bits Jr
+          </CardDescription>
         </CardHeader>
+        
         <CardContent>
           {error && (
             <Alert variant="destructive" className="mb-4">
@@ -157,8 +186,8 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email" className="flex items-center">
-                <Mail className="h-4 w-4 mr-2 text-muted-foreground" />
+              <Label htmlFor="email" className="flex items-center text-gray-700">
+                <Mail className="h-4 w-4 mr-2 text-blue-600" />
                 Email
               </Label>
               <Input
@@ -168,12 +197,12 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="border-pink-200"
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password" className="flex items-center">
-                <Lock className="h-4 w-4 mr-2 text-muted-foreground" />
+              <Label htmlFor="password" className="flex items-center text-gray-700">
+                <Lock className="h-4 w-4 mr-2 text-blue-600" />
                 Senha
               </Label>
               <Input
@@ -183,14 +212,15 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="border-pink-200"
+                className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
               />
             </div>
           </form>
         </CardContent>
-        <CardFooter className="flex flex-col sm:flex-row gap-3">
+        
+        <CardFooter className="flex flex-col sm:flex-row gap-3 pt-2">
           <Link href="/" className="w-full sm:w-auto">
-            <Button variant="outline" className="w-full border-pink-200">
+            <Button variant="outline" className="w-full border-gray-300 hover:bg-gray-100 hover:text-blue-700">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar para o Início
             </Button>
@@ -198,7 +228,7 @@ export default function LoginPage() {
           <Button
             onClick={handleSubmit}
             disabled={isLoading}
-            className="w-full sm:flex-1 bg-pink-500 hover:bg-pink-600"
+            className="w-full sm:flex-1 bg-gradient-to-r from-blue-600 to-violet-600 hover:from-blue-700 hover:to-violet-700 text-white"
           >
             {isLoading ? (
               <>
@@ -206,10 +236,15 @@ export default function LoginPage() {
                 Entrando...
               </>
             ) : (
-              "Entrar"
+              <>
+                Entrar
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </>
             )}
           </Button>
         </CardFooter>
+        
+        <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-violet-500"></div>
       </Card>
     </div>
   )

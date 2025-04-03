@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import InventoryDashboard from "@/components/inventory-dashboard"
 import { LoadingSpinner } from "@/components/loading-spinner"
-import { Heart, Users, AlertTriangle } from "lucide-react"
+import { Cpu, Users, AlertTriangle, Server, Database } from "lucide-react"
 import { LogoutButton } from "@/components/logout-button"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
@@ -74,7 +74,7 @@ export default function AdminDashboardPage() {
 
   if (error || !user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-pink-50 to-white p-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-blue-900 via-indigo-800 to-violet-900 p-4">
         <div className="w-full max-w-md">
           <Alert variant="destructive" className="mb-4">
             <AlertTriangle className="h-4 w-4" />
@@ -89,12 +89,12 @@ export default function AdminDashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-pink-50 to-white">
-      <div className="bg-gradient-to-r from-pink-500 to-purple-600 py-6 px-4 mb-8 shadow-md">
+    <main className="min-h-screen bg-gradient-to-b from-slate-50 to-white">
+      <div className="bg-gradient-to-r from-blue-600 to-violet-700 py-6 px-4 mb-8 shadow-md">
         <div className="container mx-auto flex flex-col sm:flex-row justify-between items-center">
           <h1 className="text-3xl font-bold flex items-center text-white mb-4 sm:mb-0 text-center sm:text-left">
-            <Heart className="h-8 w-8 mr-3" />
-            Painel Administrativo
+            <Cpu className="h-8 w-8 mr-3" />
+            Bits Jr Admin
           </h1>
           <div className="flex items-center gap-4">
             <div className="bg-white/20 px-3 py-1 rounded-full text-white flex items-center">
