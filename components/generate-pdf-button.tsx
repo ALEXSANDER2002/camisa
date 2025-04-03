@@ -30,7 +30,12 @@ export function GeneratePdfButton({ shirts }: GeneratePdfButtonProps) {
 
       // Adicionar estatísticas
       const totalShirts = shirts.reduce((sum, shirt) => sum + shirt.quantity, 0)
-      const totalValue = shirts.reduce((sum, shirt) => sum + shirt.price * shirt.quantity, 0)
+      const totalValue = shirts.reduce((sum, shirt) => {
+        // Incluir o valor do ingresso (ticket_price) se existir
+        const shirtTotal = shirt.price * shirt.quantity
+        const ticketTotal = shirt.ticket_price || 0
+        return sum + shirtTotal + ticketTotal
+      }, 0)
       const paidShirts = shirts.filter((shirt) => shirt.paid).length
       const unpaidShirts = shirts.filter((shirt) => !shirt.paid).length
 
@@ -44,19 +49,28 @@ export function GeneratePdfButton({ shirts }: GeneratePdfButtonProps) {
       doc.text(`Pedidos não pagos: ${unpaidShirts}`, 14, 72)
 
       // Preparar dados para a tabela
-      const tableData = shirts.map((shirt) => [
-        shirt.name,
-        shirt.size,
-        shirt.color,
-        getModelName(shirt.model_number),
-        shirt.quantity.toString(),
-        `R$ ${shirt.price.toFixed(2)}`,
-        shirt.paid ? "Sim" : "Não",
-      ])
+      const tableData = shirts.map((shirt) => {
+        // Calcular o valor total incluindo o ingresso, se existir
+        const totalPrice = ((shirt.price * shirt.quantity) + (shirt.ticket_price || 0)).toFixed(2)
+        
+        // Obter informação do tipo de ingresso
+        const ticketInfo = getTicketTypeName(shirt.ticket_type)
+        
+        return [
+          shirt.name,
+          shirt.size,
+          shirt.color,
+          getModelName(shirt.model_number),
+          shirt.quantity.toString(),
+          ticketInfo,
+          `R$ ${totalPrice}`,
+          shirt.paid ? "Sim" : "Não",
+        ]
+      })
 
       // Adicionar tabela
       autoTable(doc, {
-        head: [["Cliente", "Tamanho", "Cor", "Modelo", "Qtd", "Preço", "Pago"]],
+        head: [["Cliente", "Tamanho", "Cor", "Modelo", "Qtd", "Ingresso", "Valor Total", "Pago"]],
         body: tableData,
         startY: 80,
         styles: { fontSize: 9 },
@@ -65,7 +79,7 @@ export function GeneratePdfButton({ shirts }: GeneratePdfButtonProps) {
       })
 
       // Adicionar rodapé
-      const pageCount = doc.internal.getNumberOfPages()
+      const pageCount = (doc as any).internal.getNumberOfPages()
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i)
         doc.setFontSize(8)
@@ -90,7 +104,20 @@ export function GeneratePdfButton({ shirts }: GeneratePdfButtonProps) {
   // Função para obter o nome do modelo
   const getModelName = (modelNumber: number | undefined) => {
     if (!modelNumber) return "Não especificado"
-    return modelNumber === 1 ? "Camisa Polo Azul" : "Camisa Polo Preta"
+    return modelNumber === 1 ? "Camisa Bits - Edição Especial" : "Modelo " + modelNumber
+  }
+
+  // Função para obter o nome do tipo de ingresso
+  const getTicketTypeName = (ticketType: string | undefined) => {
+    if (!ticketType) return "Sem ingresso"
+    switch (ticketType) {
+      case "inteira":
+        return "Inteira"
+      case "meia":
+        return "Meia"
+      default:
+        return ticketType
+    }
   }
 
   return (
