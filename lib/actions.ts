@@ -36,6 +36,8 @@ export async function getShirts(): Promise<Shirt[]> {
       image_url: item.image_url,
       payment_method: item.payment_method,
       payment_proof_url: item.payment_proof_url,
+      ticket_type: item.ticket_type || undefined,
+      ticket_price: typeof item.ticket_price === 'number' ? item.ticket_price : undefined
     }))
   } catch (error) {
     console.error("Erro ao buscar camisetas:", error)
